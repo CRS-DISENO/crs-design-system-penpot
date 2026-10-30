@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CRS UI System / Sistema de diseño CRS</title>
-<meta name="description" content="Landing del UI System de CRS en codigo puro: el logotipo, los recursos de interfaz, los materiales y los tokens leidos de tokens.json, con el chevron de la marca en volumen para probar las variantes.">
+<meta name="description" content="Landing del UI System de CRS en codigo puro: el logotipo, los recursos de interfaz, los materiales y los tokens leidos de tokens.json, con un cubo 3D giratorio para probar las variantes.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 54.31 72.42'%3E%3Cpolygon points='0 0 26.88 36.21 0 72.42 27.16 72.42 54.31 36.21 27.16 0' fill='%231A6CA7'/%3E%3C/svg%3E">
   <!-- Tipografia de marca: la misma familia que usa el sistema. Si no carga,
        la pila de respaldo del CSS mantiene la pagina legible. -->
@@ -1614,7 +1614,7 @@
        lleva inclinados los dos ejes, asi que el cubo nunca se lee de
        frente. */
     transform:rotateX(-20deg) rotateY(-34deg);
-    animation:none;
+    animation:cube-spin 18s linear infinite;
     will-change:transform;
   }
   .fcube-face{
@@ -1830,139 +1830,7 @@
   .index-title--pending{ color:var(--ink-3); }
   /* Titulares de bloque: con el tracking alto, el titular largo no cabia en pantallas estrechas. */
   @media (max-width:560px){ .bloque-title{ letter-spacing:.08em; font-size:20px; } }
-
-  /* ==========================================================
-     PIEZA ARRASTRABLE DE LA GALERIA: EL CHEVRON DE LA MARCA
-     El poligono oficial del logotipo extruido, dentro del mismo
-     objeto arrastrable que antes era el cubo: mismo campo, mismo
-     boton de recolocar, mismo espacio de salida.
-     ========================================================== */
-  .pieza{
-    position:relative;
-    width:var(--cw);
-    height:var(--ch);
-    perspective:900px;
-    perspective-origin:50% 50%;
-  }
-  /* Apoyo en el plano: la misma elipse de sombra que usa el cubo, en azul
-     oscuro de la paleta. El nucleo es el azul profundo #0B2E47 (11,46,71) y la
-     caida se hace en azul medio #124C76 y en azul principal #1A6CA7 antes de
-     desaparecer, no en gris transparente: al bajar el alfa sobre un fondo claro
-     el tono se lavaba y la sombra se leia gris neutra. La elipse, su posicion y
-     su difusion son las mismas de antes. */
-  .pieza-sombra{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:-42px;
-    height:24px;
-    border-radius:50%;
-    background:radial-gradient(50% 50% at 50% 50%, rgba(18,76,118,.42) 0%, rgba(26,108,167,.26) 44%, rgba(26,108,167,0) 78%);
-  }
-  .pieza-giro{
-    position:absolute;
-    inset:0;
-    transform-style:preserve-3d;
-    /* Postura inicial identica al primer fotograma del ciclo, para que al
-       entrar el giro no haya salto de postura. */
-    transform:rotateX(-18deg) rotateY(0deg);
-    will-change:transform;
-  }
-  /* El giro no arranca hasta que el script ha montado la geometria entera: el
-     primer fotograma ya es el volumen completo. */
-  .pieza-giro.is-lista{
-    animation:chevron-spin 16s linear infinite;
-  }
-  .chev{
-    position:absolute;
-    inset:0;
-    transform-style:preserve-3d;
-    /* Mientras no esten las dos caras y las seis paredes el volumen no se
-       pinta. Se usa visibility y no opacity: opacity por debajo de 1 aplana el
-       contexto 3D y las paredes dejarian de colocarse en el espacio. */
-    visibility:hidden;
-  }
-  .chev.is-lista{ visibility:visible; }
-  /* Toda pieza de la figura es absoluta y anclada arriba a la
-     izquierda: las paredes se colocan desde su arista. */
-  .chev > i{
-    position:absolute;
-    left:0;
-    top:0;
-    display:block;
-  }
-  /* Cara plana: el fondo del elemento hace de canto de luz del contorno y el
-     tinte va encima, reducido, de modo que queda un filete claro de borde en
-     todo el perimetro del poligono. Asi la silueta se lee desde cualquier
-     angulo, incluso cuando la cara que mira al espectador es la de contraluz. */
-  .chev .cara{
-    width:100%;
-    height:100%;
-    background:linear-gradient(152deg, rgba(234,242,248,.95) 0%, rgba(207,226,240,.86) 46%, rgba(127,176,212,.78) 100%);
-  }
-  .chev .tinte{
-    position:absolute;
-    inset:0;
-    display:block;
-    transform:scale(.972);
-    transform-origin:50% 50%;
-  }
-  /* Las paredes se colocan desde su arista. El filete de luz va en los dos
-     cantos de la extrusion, que son justo los que coinciden con las caras
-     planas: son las aristas de la silueta y se leen en todo el giro. */
-  .chev .pared{
-    transform-origin:0 0;
-    border-top:1px solid rgba(234,242,248,.66);
-    border-bottom:1px solid rgba(234,242,248,.52);
-  }
-  /* Filete de luz de la cara plana: hace de borde interior blanco sin
-     romper el recorte del poligono. */
-  .chev .brillo{
-    position:absolute;
-    inset:0;
-    background:linear-gradient(158deg, rgba(255,255,255,.46) 0%, rgba(255,255,255,.1) 26%, rgba(255,255,255,0) 54%, rgba(11,46,71,.22) 100%);
-  }
-  .chev .brillo.suave{
-    background:linear-gradient(158deg, rgba(255,255,255,.30) 0%, rgba(255,255,255,.07) 30%, rgba(255,255,255,0) 62%, rgba(11,46,71,.16) 100%);
-  }
-
-  /* ------------------------------------------------------------
-     MODELO DE LUZ DEL VOLUMEN
-     Ocho tintas, todas de la paleta. Dos reglas mandan:
-     1. Ninguna cara baja de #124C76 salvo en el extremo de un degradado:
-        antes la cara trasera y las paredes izquierda y base llegaban a
-        #0B2E47 y, al quedar a contraluz, el volumen entero se leia negro.
-     2. Cada direccion visible tiene dos tintas, no una. La pared no se
-        elige solo por el eje de su normal, tambien por el sentido de su
-        arista, de modo que las dos paredes que miran al mismo lado nunca
-        salen del mismo color y el canto se sigue leyendo.
-     ------------------------------------------------------------ */
-  .ch-front{ background:linear-gradient(150deg,#7FB0D4 0%,#1A6CA7 46%,#124C76 100%); }
-  .ch-back{ background:linear-gradient(150deg,#1A6CA7 0%,#124C76 100%); }
-  .ch-t{ background:linear-gradient(150deg,#EAF2F8 0%,#CFE2F0 44%,#7FB0D4 100%); }
-  .ch-b{ background:linear-gradient(150deg,#0B2E47 0%,#124C76 54%,#1A6CA7 100%); }
-  .ch-r{ background:linear-gradient(150deg,#7FB0D4 0%,#1A6CA7 100%); }
-  .ch-r2{ background:linear-gradient(150deg,#CFE2F0 0%,#7FB0D4 56%,#1A6CA7 100%); }
-  .ch-l{ background:linear-gradient(150deg,#124C76 0%,#1A6CA7 72%,#7FB0D4 100%); }
-  .ch-l2{ background:linear-gradient(150deg,#1A6CA7 0%,#124C76 70%,#0B2E47 100%); }
-
-  /* El mismo tipo de giro que el cubo: 16 s, lineal, en bucle. Aqui la
-     vuelta de Y es completa y X oscila, para que la pieza muestre los
-     dos ejes. */
-  @keyframes chevron-spin{
-    0%{ transform:rotateX(-18deg) rotateY(0deg); }
-    25%{ transform:rotateX(0deg) rotateY(90deg); }
-    50%{ transform:rotateX(18deg) rotateY(180deg); }
-    75%{ transform:rotateX(0deg) rotateY(270deg); }
-    100%{ transform:rotateX(-18deg) rotateY(360deg); }
-  }
-  /* La pieza del chevron trae su propia camara y su propio giro. El cubo tenia
-     los suyos en .fcube-scene: una inclinacion fija y preserve-3d. Si se dejan,
-     la pieza gira dos veces (se ve torcida) y las caras se recortan contra el
-     contexto 3D heredado. Aqui se aplana el envoltorio para que el unico
-     espacio 3D sea el de la pieza. */
-  .fcube-scene{ transform:none !important; transform-style:flat !important; animation:none !important; }
-  .fcube{ display:grid; place-items:center; }</style>
+</style>
 </head>
 <body>
 <a class="skip" href="#contenido">Ir al contenido</a>
@@ -2162,7 +2030,7 @@
             <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
             <span>
               <a class="index-title" href="#materiales">Materiales y zona de pruebas</a>
-              <span class="index-desc">Los veinte materiales en su rejilla, su asignación por función y la pieza 3D que los prueba.</span>
+              <span class="index-desc">Los veinte materiales en su rejilla, su asignación por función y el cubo 3D que los prueba.</span>
             </span>
             <span class="index-state index-state--on">Generada</span>
           </li>
@@ -2744,7 +2612,7 @@
   <!-- ==========================================================
        MATERIALES Y TOKENS
        Los tokens en vivo y la galeria de materiales, que es a la vez
-       la zona de pruebas de la pieza en volumen.
+       la zona de pruebas del cubo arrastrable.
        ========================================================== -->
   <section class="bloque" id="materiales-y-tokens">
     
@@ -2812,7 +2680,7 @@
           <p>
             Veinte variantes numeradas en cuatro grupos. La columna es el grupo y la fila es la intensidad. Ninguna se elige
             por gusto: la función decide el grupo y cuatro medidas objetivas deciden el número. La rejilla hace además de
-            zona de pruebas: la pieza 3D se arrastra por encima de los veinte materiales.
+            zona de pruebas: el cubo 3D se arrastra por encima de los veinte materiales.
           </p>
         </div>
 
@@ -2821,16 +2689,16 @@
           <div class="mat-top" id="pyr-stage">
             <div class="pyr-copy">
               <span class="pyr-flag">Objeto de prueba</span>
-              <h3 class="pyr-title">Chevron 3D arrastrable</h3>
+              <h3 class="pyr-title">Cubo 3D arrastrable</h3>
               <p class="pyr-desc">
-                El símbolo de la marca en volumen: el polígono oficial extruido, sin imágenes, solo CSS. Tómelo por donde quiera y recórralo
+                Un cubo de seis caras que gira despacio, sin imágenes: solo CSS. Tómelo por donde quiera y recórralo
                 sobre la rejilla completa. El cubo se ve entero sobre el relieve y el neumorfismo, y se mete por detrás
                 de los diez vidrios de los grupos C y D, que lo recortan, lo desenfocan y lo tiñen con su receta
                 exacta.
               </p>
               <p class="pyr-desc">
                 Para eso está: pasar el objeto por los materiales es la manera de comprobar la receta en algo con
-                volumen. La diferencia entre C1 y D5, o entre A1 y A3, se ve en las caras de la pieza y no en la
+                volumen. La diferencia entre C1 y D5, o entre A1 y A3, se ve en las caras del cubo y no en la
                 descripción. Con el dedo se comporta igual que con el ratón y nunca se sale de la galería.
               </p>
               <p class="pyr-keys">
@@ -2840,7 +2708,7 @@
             </div>
             <div class="pyr-dock">
               <div class="pyr-tools">
-                <button class="pyr-btn" type="button" id="pyr-reset">Recolocar la pieza</button>
+                <button class="pyr-btn" type="button" id="pyr-reset">Recolocar el cubo</button>
                 <span class="pyr-state" id="pyr-state" role="status" aria-live="polite">En su espacio de salida</span>
               </div>
               <div class="pyr-slot" id="pyr-slot" aria-hidden="true"><span class="pyr-slot-k">Espacio de salida</span></div>
@@ -3065,15 +2933,16 @@
                entera. Sus coordenadas son las del cubo. -->
           <div class="pyr-field" id="pyr-field">
             <div class="fcube" id="fcube" tabindex="0" role="img"
-                 aria-label="Chevron 3D arrastrable que gira sobre si mismo. Se mueve con el ratón o con el dedo por toda la rejilla de materiales. Con el teclado se mueve con las flechas, Mayús con flecha da pasos largos y la tecla Inicio lo devuelve a su espacio de salida.">
+                 aria-label="Cubo 3D arrastrable que gira sobre si mismo. Se mueve con el ratón o con el dedo por toda la rejilla de materiales. Con el teclado se mueve con las flechas, Mayús con flecha da pasos largos y la tecla Inicio lo devuelve a su espacio de salida.">
               <i class="fcube-shadow" aria-hidden="true"></i>
               <i class="fcube-ring" aria-hidden="true"></i>
               <span class="fcube-scene" aria-hidden="true">
-                <div class="pieza" id="pieza">
-                  <div class="pieza-giro" id="pieza-giro">
-                    <div class="chev" id="chev"></div>
-                  </div>
-                </div>
+                <i class="fcube-face cf-front"></i>
+                <i class="fcube-face cf-right"></i>
+                <i class="fcube-face cf-left"></i>
+                <i class="fcube-face cf-back"></i>
+                <i class="fcube-face cf-top"></i>
+                <i class="fcube-face cf-bottom"></i>
               </span>
               <span class="fcube-tag-wrap" aria-hidden="true"><span class="fcube-tag"><i class="fcube-grip"></i>Arrastra</span></span>
             </div>
@@ -3654,149 +3523,6 @@
     document.fonts.ready.then(function () { if (!touched) { place(); } });
   }
 })();
-
-
-(function () {
-  "use strict";
-
-  /* Simbolo de marca. Es el poligono del SVG oficial del logotipo, en
-     coordenadas del viewBox 552,23 por 141,34, copiado literalmente:
-     208.22,13.58  235.1,49.79  208.22,86  235.38,86  262.53,49.79  235.38,13.58
-     No se redibuja a ojo y no se aproxima: de estos seis vertices salen
-     las dos caras planas y las seis paredes del volumen. */
-  var OFICIAL = [208.22, 13.58, 235.1, 49.79, 208.22, 86, 235.38, 86, 262.53, 49.79, 235.38, 13.58];
-
-  var UNIDAD = 2.4;   /* escala del simbolo: 130,34 por 173,81 px */
-  var FONDO = 46;     /* profundidad del volumen en px */
-
-  var pieza = document.getElementById("pieza");
-  var caja = document.getElementById("chev");
-  var giro = document.getElementById("pieza-giro");
-  if (!pieza || !caja || !giro) { return; }
-
-  /* 1. Caja del poligono y puntos normalizados, con el minimo en 0,0. */
-  var total = OFICIAL.length / 2;
-  var i;
-  var minX = OFICIAL[0];
-  var minY = OFICIAL[1];
-  var maxX = OFICIAL[0];
-  var maxY = OFICIAL[1];
-  for (i = 1; i < total; i++) {
-    if (OFICIAL[i * 2] < minX) { minX = OFICIAL[i * 2]; }
-    if (OFICIAL[i * 2] > maxX) { maxX = OFICIAL[i * 2]; }
-    if (OFICIAL[i * 2 + 1] < minY) { minY = OFICIAL[i * 2 + 1]; }
-    if (OFICIAL[i * 2 + 1] > maxY) { maxY = OFICIAL[i * 2 + 1]; }
-  }
-  var ancho = (maxX - minX) * UNIDAD;
-  var alto = (maxY - minY) * UNIDAD;
-
-  var puntos = [];
-  for (i = 0; i < total; i++) {
-    puntos.push({
-      x: (OFICIAL[i * 2] - minX) * UNIDAD,
-      y: (OFICIAL[i * 2 + 1] - minY) * UNIDAD
-    });
-  }
-
-  /* 2. Area con signo. Dice hacia donde recorre el poligono y, con eso,
-     cual es el lado de fuera de cada arista. */
-  var area = 0;
-  for (i = 0; i < total; i++) {
-    var pa = puntos[i];
-    var pb = puntos[(i + 1) % total];
-    area += pa.x * pb.y - pb.x * pa.y;
-  }
-  var signo = area > 0 ? 1 : -1;
-
-  /* 3. El contorno en px, para el recorte de las dos caras planas. */
-  var vertices = [];
-  for (i = 0; i < total; i++) {
-    vertices.push(puntos[i].x.toFixed(2) + "px " + puntos[i].y.toFixed(2) + "px");
-  }
-  var contorno = "polygon(" + vertices.join(", ") + ")";
-
-  /* 4. Fabrica de piezas: todas son elementos i dentro de .chev. */
-  function piezaNueva(clases) {
-    var el = document.createElement("i");
-    el.className = clases;
-    return el;
-  }
-
-  /* 5. Cara plana: una capa de contorno claro y, dentro, el tinte con su
-     filete de luz. El contorno se recorta con el mismo poligono, asi que la
-     cara queda ribeteada por los cuatro costados. */
-  function caraPlana(tinte, z, llevaBrillo) {
-    var cara = piezaNueva("cara");
-    cara.style.clipPath = contorno;
-    cara.style.transform = "translateZ(" + z.toFixed(2) + "px)";
-    var capa = piezaNueva("tinte " + tinte);
-    capa.style.clipPath = contorno;
-    capa.appendChild(piezaNueva(llevaBrillo ? "brillo" : "brillo suave"));
-    cara.appendChild(capa);
-    return cara;
-  }
-
-  /* 6. Todo se monta en un fragmento suelto: cuando entra en el documento
-     entra de una sola vez, con los estilos ya puestos y sin pasar por un
-     estado intermedio. El navegador no recalcula nada hasta el montaje. */
-  var fragmento = document.createDocumentFragment();
-
-  /* Las seis paredes. El tinte sale de la orientacion de la normal hacia
-     fuera y, dentro de cada eje, tambien del sentido de la arista: las dos
-     paredes que miran al mismo lado nunca salen del mismo color. */
-  for (i = 0; i < total; i++) {
-    var p = puntos[i];
-    var q = puntos[(i + 1) % total];
-    var dx = q.x - p.x;
-    var dy = q.y - p.y;
-    var largo = Math.sqrt(dx * dx + dy * dy);
-    if (largo < 0.01) { continue; }
-
-    var nx = (signo * dy) / largo;
-    var ny = (-signo * dx) / largo;
-    var tinte;
-    if (Math.abs(nx) >= Math.abs(ny)) {
-      if (nx > 0) {
-        tinte = dx > 0 ? "ch-r" : "ch-r2";
-      } else {
-        tinte = dx > 0 ? "ch-l" : "ch-l2";
-      }
-    } else {
-      tinte = ny > 0 ? "ch-b" : "ch-t";
-    }
-
-    var angulo = (Math.atan2(dy, dx) * 180) / Math.PI;
-    var pared = piezaNueva("pared " + tinte);
-    pared.style.width = largo.toFixed(2) + "px";
-    pared.style.height = (FONDO + 0.8).toFixed(2) + "px";
-    pared.style.transform =
-      "translate3d(" + p.x.toFixed(2) + "px, " + p.y.toFixed(2) + "px, " +
-      (-(FONDO / 2) - 0.4).toFixed(2) + "px) rotateZ(" + angulo.toFixed(2) + "deg) rotateX(90deg)";
-
-    fragmento.appendChild(pared);
-  }
-
-  /* Primero lo de detras, para que el orden de pintado acompañe. */
-  fragmento.appendChild(caraPlana("ch-back", -FONDO / 2, false));
-  fragmento.appendChild(caraPlana("ch-front", FONDO / 2, true));
-
-  /* 7. La caja de la pieza, calculada del poligono y no escrita a mano. Antes
-     del montaje, para que el primer calculo de estilo ya la tenga. */
-  pieza.style.width = ancho.toFixed(2) + "px";
-  pieza.style.height = alto.toFixed(2) + "px";
-
-  /* 8. Montaje unico. */
-  caja.appendChild(fragmento);
-
-  /* 9. El volumen se muestra y el giro arranca solo cuando la geometria esta
-     montada y el navegador ya compuso el primer fotograma: nunca se ve la
-     pieza a medio construir ni un giro sobre una caja vacia. */
-  requestAnimationFrame(function () {
-    caja.classList.add("is-lista");
-    giro.classList.add("is-lista");
-  });
-})();
-
 </script>
 </body>
 </html>
