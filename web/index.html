@@ -274,12 +274,6 @@
   }
   .hero-in{ position:relative; z-index:6; }
   /* marca de agua: el chevron del logotipo como forma, no como texto */
-  .hero-mark{
-    position:absolute; right:4%; top:-18px; width:170px; height:134px;
-    background:linear-gradient(140deg,#7FB0D4,#1A6CA7 52%,#124C76);
-    clip-path:polygon(0 0, 26% 0, 100% 50%, 26% 100%, 0 100%, 74% 50%);
-    opacity:.14; pointer-events:none;
-  }
   .badge{
     display:inline-flex; align-items:center; gap:10px; padding:9px 26px 9px 24px;
     font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
@@ -915,8 +909,7 @@
     .nav::-webkit-scrollbar{ display:none; }
     .nav a{ white-space:nowrap; }
     .hero{ padding:58px 0 44px; }
-    .hero-mark{ width:120px; height:96px; top:-10px; }
-    .hero-panel{ padding:28px 20px 30px; }
+      .hero-panel{ padding:28px 20px 30px; }
     .ba-grid{ grid-template-columns:1fr; }
     .cta-ribbon{ padding:20px 24px; }
   }
@@ -993,7 +986,6 @@
   <!-- ================= 2. PORTADA ================= -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="container">
-      <i class="hero-mark" aria-hidden="true"></i>
       <div class="hero-panel c3">
         <div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div>
         <div class="hero-in">
