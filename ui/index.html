@@ -1956,7 +1956,13 @@
     75%{ transform:rotateX(0deg) rotateY(270deg); }
     100%{ transform:rotateX(-18deg) rotateY(360deg); }
   }
-</style>
+  /* La pieza del chevron trae su propia camara y su propio giro. El cubo tenia
+     los suyos en .fcube-scene: una inclinacion fija y preserve-3d. Si se dejan,
+     la pieza gira dos veces (se ve torcida) y las caras se recortan contra el
+     contexto 3D heredado. Aqui se aplana el envoltorio para que el unico
+     espacio 3D sea el de la pieza. */
+  .fcube-scene{ transform:none !important; transform-style:flat !important; animation:none !important; }
+  .fcube{ display:grid; place-items:center; }</style>
 </head>
 <body>
 <a class="skip" href="#contenido">Ir al contenido</a>
