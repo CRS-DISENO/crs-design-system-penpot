@@ -1,0 +1,16 @@
+# Dependencias y temporales
+node_modules/
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db
+
+# Temporales de Office
+~$*
+
+# Respaldos y volcados locales
+*.bak
+*.bak-*
+*.tmp
+*.dmp

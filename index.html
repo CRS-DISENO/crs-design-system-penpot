@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRS Design System Generator</title>
+  <style>
+    :root {
+      --crs-blue: #1A6CA7;
+      --crs-blue700: #124C76;
+      --crs-blue900: #0B2E47;
+      --crs-blue100: #CFE2F0;
+      --crs-blue50: #EAF2F8;
+      --crs-text: #1D1D1C;
+      --crs-muted: #5A6068;
+      --crs-bg: #F4F6F8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+      background: var(--crs-bg);
+      color: var(--crs-text);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    h1 {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--crs-blue900);
+    }
+    .brand { color: var(--crs-blue); }
+    p { margin: 0; font-size: 13px; color: var(--crs-muted); line-height: 1.4; }
+    .rotulo {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--crs-blue);
+    }
+    .drop {
+      border: 1px dashed var(--crs-blue);
+      background: #FFFFFF;
+      padding: 16px 14px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--crs-text);
+    }
+    .drop:hover, .drop.over { background: var(--crs-blue50); border-color: var(--crs-blue700); }
+    .drop strong { font-weight: 700; font-size: 13px; }
+    .drop small { font-size: 11px; color: var(--crs-muted); line-height: 1.35; }
+    button {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 14px;
+      color: #FFFFFF;
+      background: var(--crs-blue);
+      border: none;
+      border-radius: 0;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+    button:hover { background: var(--crs-blue700); }
+    button:disabled { background: var(--crs-blue100); color: #8B939C; cursor: default; }
+    #status { font-size: 12px; color: var(--crs-muted); min-height: 16px; }
+    #logoState { font-size: 12px; color: var(--crs-muted); min-height: 16px; }
+    #logoState.ok { color: var(--crs-blue700); font-weight: 700; }
+    #logoState.bad { color: #D9534F; font-weight: 700; }
+    .pie {
+      border-top: 1px solid rgba(29, 29, 28, 0.10);
+      padding-top: 10px;
+      font-size: 11px;
+      color: var(--crs-muted);
+      line-height: 1.4;
+    }
+
+    /* Formulario del brief: es el paso cero antes de generar. */
+    .brief { display: flex; flex-direction: column; gap: 10px; }
+    .brief label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--crs-blue);
+    }
+    .brief textarea, .brief input[type="text"] {
+      font-family: inherit; font-size: 12px; color: var(--crs-text);
+      border: 1px solid var(--crs-blue100); border-radius: 0;
+      padding: 8px 10px; background: #FFFFFF; width: 100%;
+      resize: vertical; line-height: 1.4;
+    }
+    .brief textarea:focus, .brief input:focus {
+      outline: 2px solid var(--crs-blue); outline-offset: 1px;
+    }
+    .brief .pilar { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .brief .pilar-nombre { font-weight: 700; }
+    .brief .ayuda { font-size: 10px; color: var(--crs-muted); line-height: 1.35; }
+    .brief-acciones { display: flex; gap: 8px; align-items: center; }
+    .brief-acciones button.secundario {
+      background: #FFFFFF; color: var(--crs-blue700);
+      border: 1px solid var(--crs-blue); font-size: 11px; padding: 8px 12px;
+    }
+    /* Elementos distintivos: nombre y marca de cuál es el principal. */
+    .brief .elemento { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .brief .elemento label.principal {
+      display: flex; gap: 6px; align-items: center; cursor: pointer;
+      font-size: 10px; letter-spacing: 0.08em; color: var(--crs-muted); text-transform: none;
+    }
+    .brief .elemento input[type="radio"] { accent-color: var(--crs-blue); }  </style>
+</head>
+<body>
+  <h1>CRS <span class="brand">&gt;</span> Design System Generator <span class="brand">v1.12</span></h1>
+  <p>Genera tres páginas de presentación en Penpot: la portada de marca, el índice de secciones y la sección de marca. El dibujo usa layout flexible en el board: contenedores con gap y padding, sin coordenadas absolutas. Tipografía del sistema: Plus Jakarta Sans.</p>
+
+  <span class="rotulo">Logotipo</span>
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="Arrastra aquí el archivo SVG del logotipo o pulsa para elegirlo">
+    <strong>Arrastra aquí el SVG del logotipo</strong>
+    <small>o pulsa para elegirlo del equipo. Si no subes ninguno se usan los SVG oficiales que viajan con el plugin.</small>
+  </div>
+  <input type="file" id="file" accept=".svg,image/svg+xml" hidden>
+  <p id="logoState">Sin archivo: se usará el SVG oficial del plugin.</p>
+
+  <span class="rotulo">Paso 1. El brief del sistema</span>
+  <p class="ayuda">Esto es lo que convierte una plantilla en tu sistema. Lo que escribas aquí se imprime en la página 02 Propósito y pilares y condiciona cómo se generan las demás.</p>
+
+  <div class="brief">
+    <label for="bProposito">La frase que abre el sistema</label>
+    <textarea id="bProposito" rows="3"></textarea>
+    <p class="ayuda">Una sola frase. Se imprime como declaración en la página 02 y fija el tono del resto.</p>
+
+    <label for="bSignificado">Por qué la marca es así</label>
+    <textarea id="bSignificado" rows="4"></textarea>
+    <p class="ayuda">El significado de las formas del logotipo: por qué el símbolo es un cierre de etiqueta, por qué la i es un playhead. Alimenta el bloque de marca y justifica el uso de sus elementos. No es un eslogan.</p>
+
+    <label>Los frentes de tu perfil (de 1 a 5)</label>
+    <p class="ayuda">Van en retícula en la página 02, cada uno con un icono genérico de columna. Nombre corto en mayúsculas y, si quieres, una línea que lo explique.</p>
+    <div id="bPilares"></div>
+
+    <label>Los elementos que hacen reconocible tu logotipo</label>
+    <p class="ayuda">Se usarán como recursos de interfaz en todo el sistema. Marca cuál es el principal: ese define el área de respeto (la medida X). En esta versión el logo se entrega como SVG; en la próxima cada elemento se subirá por separado.</p>
+    <div id="bDistintivos"></div>
+    <button class="secundario" id="bAddElemento" type="button">Añadir otro elemento</button>
+
+    <div class="brief-acciones">
+      <button class="secundario" id="bRestaurar" type="button">Restaurar los textos de CRS</button>
+    </div>
+  </div>
+  <button id="generate">Paso 2. Generar las cuatro páginas</button>
+  <p id="status">Listo.</p>
+
+  <p class="pie">Los tokens del sistema (color, tipografía y espacio) salen del mismo código que publica el repositorio como <strong>tokens.json</strong>, así que Penpot y la web no pueden desincronizarse.</p>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('generate');
+      var status = document.getElementById('status');
+      var drop = document.getElementById('drop');
+      var input = document.getElementById('file');
+      var logoState = document.getElementById('logoState');
+      var LIMITE = 512 * 1024; /* 512 KB: un logotipo SVG no necesita mas */
+
+      function setStatus(text) { status.textContent = text; }
+      function setLogo(text, clase) {
+        logoState.textContent = text;
+        logoState.className = clase || '';
+      }
+
+      /* Un solo camino para el arrastre y para el selector de archivos. */
+      function leerArchivo(file) {
+        if (!file) { return; }
+        var nombre = file.name || 'logotipo.svg';
+        var esSvg = /\.svg$/i.test(nombre) || file.type === 'image/svg+xml';
+        if (!esSvg) {
+          setLogo('Ese archivo no es un SVG: ' + nombre, 'bad');
+          return;
+        }
+        if (file.size > LIMITE) {
+          setLogo('El SVG pasa de 512 KB: ' + nombre, 'bad');
+          return;
+        }
+        var reader = new FileReader();
+        reader.onerror = function () {
+          setLogo('No se pudo leer el archivo: ' + nombre, 'bad');
+        };
+        reader.onload = function () {
+          var texto = String(reader.result || '');
+          if (texto.indexOf('<svg') === -1) {
+            setLogo('El archivo no contiene un SVG: ' + nombre, 'bad');
+            return;
+          }
+          /* El plugin no puede leer el disco: el texto viaja en el mensaje. */
+          window.parent.postMessage({ type: 'crs-logo', name: nombre, svg: texto }, '*');
+          setLogo('Enviado al plugin: ' + nombre, 'ok');
+        };
+        reader.readAsText(file);
+      }
+
+      /* Arrastre */
+      ['dragenter', 'dragover'].forEach(function (ev) {
+        drop.addEventListener(ev, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          drop.classList.add('over');
+        }, false);
+      });
+      ['dragleave', 'dragend'].forEach(function (ev) {
+        drop.addEventListener(ev, function () { drop.classList.remove('over'); }, false);
+      });
+      drop.addEventListener('drop', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.remove('over');
+        var dt = e.dataTransfer;
+        if (!dt) { return; }
+        var file = (dt.files && dt.files.length) ? dt.files[0] : null;
+        if (!file) {
+          /* algunos navegadores solo dejan leer texto del arrastre */
+          var texto = dt.getData ? dt.getData('text/plain') : '';
+          if (texto && texto.indexOf('<svg') !== -1) {
+            window.parent.postMessage({ type: 'crs-logo', name: 'arrastrado.svg', svg: texto }, '*');
+            setLogo('Enviado al plugin: SVG del arrastre', 'ok');
+          }
+          return;
+        }
+        leerArchivo(file);
+      }, false);
+
+      /* Selector de archivos, para quien no use el raton */
+      drop.addEventListener('click', function () { input.click(); }, false);
+      drop.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+      }, false);
+      input.addEventListener('change', function () {
+        leerArchivo(input.files && input.files[0]);
+      }, false);
+
+      /* ---------------- Brief del sistema ---------------- */
+      var ELEMENTOS_DEFECTO = [
+        ['simbolo >', true],
+        ['playhead i', false],
+        ['cinta con muesca', false],
+        ['paralelogramo', false]
+      ];
+
+      var BRIEF_DEFECTO = {
+        proposito: 'Reúne la marca, sus fundamentos y sus aplicaciones digitales en una presentación editable.',
+        significado: 'El símbolo es el cierre de etiqueta HTML, el gesto con el que se cierra una idea. La i es un playhead: marca dónde está el documento en su propio recorrido. El logotipo usa las esquinas rectas y los cortes a 45 grados del resto del sistema.',
+        pilares: [
+          ['DIRECCIÓN DE ARTE', 'Estrategia visual y criterio de marca.'],
+          ['MOTION Y NARRATIVA', 'El tiempo como material de diseño.'],
+          ['IA Y FLUJOS', 'Automatizar lo repetible para ganar criterio.'],
+          ['ARQUITECTURA WEB', 'Estructura, CMS y entornos digitales.'],
+          ['UI/UX Y EXPERIENCIA', 'Interfaces que se entienden sin manual.']
+        ]
+      };
+
+      var bProposito = document.getElementById('bProposito');
+      var bSignificado = document.getElementById('bSignificado');
+      var bPilares = document.getElementById('bPilares');
+      var bRestaurar = document.getElementById('bRestaurar');
+      var bDistintivos = document.getElementById('bDistintivos');
+      var bAddElemento = document.getElementById('bAddElemento');
+
+      /* Cinco filas de pilar: nombre corto y una línea de detalle. */
+      function pintarPilares(lista) {
+        bPilares.innerHTML = '';
+        for (var i = 0; i < 5; i++) {
+          var p = lista[i] || ['', ''];
+          var caja = document.createElement('div');
+          caja.className = 'pilar';
+
+          var nom = document.createElement('input');
+          nom.type = 'text';
+          nom.className = 'pilar-nombre';
+          nom.maxLength = 42;
+          nom.placeholder = 'Pilar ' + (i + 1) + ' (vacío para omitirlo)';
+          nom.value = p[0] || '';
+
+          var det = document.createElement('input');
+          det.type = 'text';
+          det.className = 'pilar-detalle';
+          det.maxLength = 90;
+          det.placeholder = 'Una línea que lo explique (opcional)';
+          det.value = p[1] || '';
+
+          caja.appendChild(nom);
+          caja.appendChild(det);
+          bPilares.appendChild(caja);
+        }
+      }
+
+      /* Elementos distintivos: nombre y cuál es el principal. */
+      function pintarElementos(lista) {
+        bDistintivos.innerHTML = '';
+        lista.forEach(function (e, i) {
+          var caja = document.createElement('div');
+          caja.className = 'elemento';
+
+          var nom = document.createElement('input');
+          nom.type = 'text';
+          nom.className = 'elemento-nombre';
+          nom.maxLength = 40;
+          nom.placeholder = 'Elemento ' + (i + 1);
+          nom.value = e[0] || '';
+
+          var eti = document.createElement('label');
+          eti.className = 'principal';
+          var rad = document.createElement('input');
+          rad.type = 'radio';
+          rad.name = 'elementoPrincipal';
+          rad.className = 'elemento-principal';
+          rad.checked = !!e[1];
+          eti.appendChild(rad);
+          eti.appendChild(document.createTextNode('principal'));
+
+          caja.appendChild(nom);
+          caja.appendChild(eti);
+          bDistintivos.appendChild(caja);
+        });
+      }
+
+      function restaurarBrief() {
+        bProposito.value = BRIEF_DEFECTO.proposito;
+        bSignificado.value = BRIEF_DEFECTO.significado;
+        pintarPilares(BRIEF_DEFECTO.pilares);
+        pintarElementos(ELEMENTOS_DEFECTO);
+      }
+
+      /* Recoge lo escrito. Los pilares vacíos se descartan. */
+      function leerBrief() {
+        var pilares = [];
+        var filas = bPilares.querySelectorAll('.pilar');
+        for (var i = 0; i < filas.length; i++) {
+          var nombre = filas[i].querySelector('.pilar-nombre').value.trim();
+          var detalle = filas[i].querySelector('.pilar-detalle').value.trim();
+          if (nombre) { pilares.push({ nombre: nombre, detalle: detalle }); }
+        }
+        var elementos = [];
+        var filasEl = bDistintivos.querySelectorAll('.elemento');
+        for (var k = 0; k < filasEl.length; k++) {
+          var nomEl = filasEl[k].querySelector('.elemento-nombre').value.trim();
+          var prin = filasEl[k].querySelector('.elemento-principal').checked;
+          if (nomEl) { elementos.push({ nombre: nomEl, principal: prin }); }
+        }
+        return {
+          proposito: bProposito.value.trim(),
+          significado: bSignificado.value.trim(),
+          pilares: pilares,
+          distintivos: elementos
+        };
+      }
+
+      bAddElemento.addEventListener('click', function () {
+        var filas = bDistintivos.querySelectorAll('.elemento');
+        if (filas.length >= 6) { setStatus('Seis elementos es el máximo.'); return; }
+        var lista = [];
+        for (var i = 0; i < filas.length; i++) {
+          lista.push([filas[i].querySelector('.elemento-nombre').value, filas[i].querySelector('.elemento-principal').checked]);
+        }
+        lista.push(['', lista.length === 0]);
+        pintarElementos(lista);
+      }, false);
+
+      bRestaurar.addEventListener('click', function () {
+        restaurarBrief();
+        setStatus('Textos de CRS restaurados en el brief.');
+      }, false);
+
+      restaurarBrief();
+
+      /* Generar */
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        var brief = leerBrief();
+        var n = brief.pilares.length;
+        setStatus('Generando... ' + (n ? n + ' pilares' : 'sin pilares') + '. Revisa el lienzo.');
+        /* El brief viaja con el mensaje: el plugin lo usa en la página de propósito. */
+        window.parent.postMessage({ type: 'crs-generate', brief: brief }, '*');
+      });
+
+      /* Respuestas del plugin */
+      window.addEventListener('message', function (ev) {
+        var msg = ev.data;
+        if (msg && msg.pluginMessage) { msg = msg.pluginMessage; }
+        if (!msg) { return; }
+        if (typeof msg === 'string') { setStatus(msg); return; }
+        if (msg.type === 'crs-done') {
+          btn.disabled = false;
+          setStatus(msg.summary || 'Presentacion generada.');
+        } else if (msg.type === 'crs-error') {
+          btn.disabled = false;
+          setStatus('Error: ' + (msg.error || 'desconocido'));
+        } else if (msg.type === 'crs-logo-status') {
+          if (msg.ok) { setLogo('Logotipo aceptado por el plugin: ' + msg.name, 'ok'); }
+          else { setLogo('El plugin rechazo el archivo: ' + msg.name, 'bad'); }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

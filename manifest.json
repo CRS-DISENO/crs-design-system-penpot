@@ -1,0 +1,9 @@
+{
+  "name": "CRS Design System",
+  "description": "Genera la presentacion del design system en Penpot desde un brief: portada con el logotipo, indice, proposito y pilares con icono de columna, y seccion de marca con las formas del SVG oficial, area de respeto y reglas de uso.",
+  "version": 2,
+  "host": "https://CRS-DISENO.github.io/crs-design-system-penpot/",
+  "plugin-id": "crs-design-system-v27",
+  "code": "plugin.js",
+  "permissions": ["content:read", "content:write", "library:read", "library:write"]
+}

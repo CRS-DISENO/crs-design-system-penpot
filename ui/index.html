@@ -1,0 +1,3796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRS UI System / Sistema de diseño CRS</title>
+<meta name="description" content="Landing del UI System de CRS en codigo puro: el logotipo, los recursos de interfaz, los materiales y los tokens leidos de tokens.json, con el chevron de la marca en volumen para probar las variantes.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 54.31 72.42'%3E%3Cpolygon points='0 0 26.88 36.21 0 72.42 27.16 72.42 54.31 36.21 27.16 0' fill='%231A6CA7'/%3E%3C/svg%3E">
+  <!-- Tipografia de marca: la misma familia que usa el sistema. Si no carga,
+       la pila de respaldo del CSS mantiene la pagina legible. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  /* =========================================================
+     1. TOKENS DE MAQUETACION
+     Los valores vivos se leen de tokens.json en la seccion de
+     tokens. Este bloque solo fija el vocabulario de la pagina.
+     ========================================================= */
+  :root{
+    --blue:#1A6CA7;
+    --blue-700:#124C76;
+    --blue-900:#0B2E47;
+    --blue-300:#7FB0D4;
+    --blue-100:#CFE2F0;
+    --blue-50:#EAF2F8;
+    --neu:#E8EDF3;
+    --ink:#1D1D1C;
+    --ink-2:#5A6068;
+    --ink-3:#8B939C;
+    --bg:#F4F6F8;
+    --white:#FFFFFF;
+    --dark:#0E1116;
+    --dark-panel:#131A24;
+    --warn:#F0A868;
+    --ok:#3FA97B;
+    --err:#D9534F;
+    --font:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --maxw:1180px;
+    /* Ancho del logotipo en el esquema del area de respeto. Toda la geometria
+       del esquema se calcula desde aqui, asi que la composicion se reduce
+       manteniendo las proporciones exactas del viewBox oficial. */
+    --logo-respect-w:460px;
+    --line:rgba(26,108,167,.18);
+    --line-soft:rgba(11,46,71,.10);
+    /* Grano fino de los materiales de vidrio, generado por el propio CSS con
+       una turbulencia SVG en linea: no es un archivo de textura. */
+    --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    --scene:
+      radial-gradient(420px 320px at 12% 16%, rgba(127,176,212,.92), rgba(127,176,212,0) 70%),
+      radial-gradient(520px 380px at 78% 30%, rgba(26,108,167,.90), rgba(26,108,167,0) 72%),
+      radial-gradient(480px 320px at 42% 90%, rgba(11,46,71,.92), rgba(11,46,71,0) 74%),
+      linear-gradient(140deg, #0B2E47 0%, #124C76 52%, #1A6CA7 100%);
+    /* Fondo de la zona de pruebas: claro y con volumen, para que el vidrio de
+       los grupos C y D tenga algo que distorsionar detras. */
+    --stage:
+      radial-gradient(420px 240px at 18% 6%, rgba(255,255,255,.88), rgba(255,255,255,0) 72%),
+      radial-gradient(380px 260px at 88% 96%, rgba(26,108,167,.28), rgba(26,108,167,0) 76%),
+      linear-gradient(160deg, #EAF2F8 0%, #CFE2F0 58%, #7FB0D4 100%);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  /* Las recetas de los materiales llevan difusiones grandes (52 px en B2, halo
+     de 62 px en A3) que sobresalen de su tarjeta. El recorte horizontal de la
+     raiz las deja salir sin abrir jamas una barra horizontal, y al ser clip y
+     no hidden no crea contenedor de scroll: la cabecera fija sigue pegandose. */
+  html{scroll-behavior:smooth;overflow-x:clip}
+  body{
+    margin:0;
+    font-family:var(--font);
+    font-size:16px;
+    line-height:1.55;
+    color:var(--ink);
+    background:var(--bg);
+    overflow-x:clip;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  a{color:var(--blue-700);text-decoration:none}
+  a:hover{color:var(--blue)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.92em;color:var(--blue-700);background:var(--blue-50);padding:1px 5px;border:1px solid var(--line)}
+  .sprite{position:absolute;width:0;height:0;overflow:hidden}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--blue);color:#fff;padding:10px 16px;font-weight:700;z-index:99}
+  .skip:focus{left:8px;top:8px}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  .small{font-size:13px;color:var(--ink-2);margin:8px 0 0}
+  /* Los enlaces internos no se esconden bajo la cabecera fija. */
+  section[id],.bloque[id]{scroll-margin-top:88px}
+
+  /* =========================================================
+     2. TITULARES: MAYUSCULAS, TRACKING AMPLIO, PESO 700 u 800
+     ========================================================= */
+  .eyebrow{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.26em;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 12px;
+  }
+  .eyebrow::before{
+    content:"";
+    display:inline-block;
+    width:8px;height:8px;
+    background:var(--blue);
+    margin-right:10px;
+    vertical-align:1px;
+  }
+  h1,h2,h3{font-family:var(--font);margin:0;color:var(--ink)}
+  h1{
+    font-size:clamp(38px,7vw,96px);
+    font-weight:800;
+    line-height:.94;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+  }
+  h2{
+    font-size:clamp(26px,3.4vw,40px);
+    font-weight:800;
+    line-height:1.04;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+  }
+  h3{
+    font-size:16px;
+    font-weight:700;
+    line-height:1.2;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+  .lead{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:62ch;margin:24px 0 0}
+
+  /* =========================================================
+     3. CABECERA (MATERIAL C2: VIDRIO NEUTRO ESMERILADO FINO)
+     ========================================================= */
+  .site-header{
+    position:sticky;
+    top:0;
+    z-index:30;
+    display:flex;
+    align-items:center;
+    gap:32px;
+    padding:14px 32px;
+    background:rgba(255,255,255,.62);
+    -webkit-backdrop-filter:blur(6px) saturate(1.1);
+    backdrop-filter:blur(6px) saturate(1.1);
+    border-bottom:1px solid var(--line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.85), 0 6px 18px rgba(11,46,71,.08);
+  }
+  .brand{display:block;line-height:0}
+  .site-nav{margin-left:auto;display:flex;flex-wrap:wrap;gap:24px}
+  .site-nav a{
+    position:relative;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink);
+    padding:6px 0;
+  }
+  .site-nav a::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:2px;
+    background:var(--blue);
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform .18s ease;
+  }
+  .site-nav a:hover::after,.site-nav a:focus-visible::after{transform:scaleX(1)}
+
+  /* Logotipo: una sola geometria oficial, tres juegos de tintas */
+  .logo{display:block;height:auto}
+  .logo--color{width:176px}
+  .logo--header{width:150px}
+  .logo--mono-dark{width:248px}
+  .logo--mono-light{width:248px}
+  .logo--min{width:150px}
+  .logo--respect{}
+  .logo--footer{width:150px}
+
+  /* Simbolo de recorrido y pieza playhead. El tamano se fija por el ALTO y el
+     ancho sale de la proporcion del chevron (54,31 por 72,42), asi que la
+     pieza nunca se deforma. */
+  .glyph{display:block;height:auto;fill:var(--blue);color:var(--blue)}
+  .glyph--faded{opacity:.5}
+  .glyph--sm{width:18px;height:24px}
+  .glyph--fav32{width:24px;height:32px}
+  .glyph--fav16{width:12px;height:16px}
+  .glyph--piece-chevron{width:45px;height:60px}
+  /* El playhead mide lo mismo de alto que el chevron, 60 px, para que las dos
+     piezas se lean a la par en la seccion de formas. El ancho no se elige: sale
+     de su propia proporcion, 22,63 por 81,48, que da 16,66 px. Asi la pieza
+     crece sin deformarse. */
+  .glyph--piece-playhead{width:16.66px;height:60px}
+  .glyph--ribbon{width:120px;height:36px}
+  .glyph--skew{width:120px;height:36px}
+
+  /* =========================================================
+     4. BLOQUES DE LA PAGINA
+     La pagina se ordena en bloques. La cabecera de cada bloque
+     es visible y lleva su titulo y una frase: sin numeros de
+     bloque, porque el numero no decia nada al lector.
+     ========================================================= */
+  .bloque{position:relative}
+  .bloque-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    gap:10px 18px;
+    padding:30px 0 26px;
+  }
+  .bloque-title{ min-width:0; max-width:100%; overflow-wrap:anywhere;
+    flex:none;
+    font-size:clamp(22px,2.8vw,32px);
+    font-weight:800;
+    letter-spacing:.14em;
+    line-height:1.06;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  .bloque-note{
+    flex:1 1 340px;
+    min-width:0;
+    margin:0;
+    font-size:13px;
+    color:var(--ink-2);
+    max-width:64ch;
+  }
+
+  /* =========================================================
+     5. PORTADA (ESCENA EN CSS + MATERIAL C3)
+     ========================================================= */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    padding:44px 0 72px;
+    background:
+      radial-gradient(880px 380px at 82% 8%, rgba(127,176,212,.5), rgba(127,176,212,0) 72%),
+      radial-gradient(680px 420px at 8% 92%, rgba(207,226,240,.85), rgba(207,226,240,0) 74%),
+      linear-gradient(180deg, #EAF2F8 0%, #F4F6F8 78%);
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    top:-14%;right:-8%;
+    width:520px;height:520px;
+    background:linear-gradient(135deg, rgba(26,108,167,.16), rgba(127,176,212,.05));
+    clip-path:polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    transform:rotate(45deg);
+    pointer-events:none;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    left:-90px;bottom:-140px;
+    width:280px;height:280px;
+    border:1px solid rgba(26,108,167,.28);
+    border-radius:50%;
+    pointer-events:none;
+  }
+  .hero-panel{
+    position:relative;
+    z-index:1;
+    padding:clamp(24px,4vw,48px);
+    border:1px solid rgba(255,255,255,.62);
+    border-radius:2px;
+    background:rgba(255,255,255,.5);
+    -webkit-backdrop-filter:blur(9px) saturate(1.08);
+    backdrop-filter:blur(9px) saturate(1.08);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 18px 44px rgba(11,46,71,.16);
+  }
+  .hero-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:0 0 24px;
+    padding:0;
+    list-style:none;
+  }
+  .hero-meta li{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+    background:rgba(255,255,255,.75);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:5px 10px;
+  }
+  .points{
+    list-style:none;
+    margin:32px 0 0;
+    padding:0;
+    display:grid;
+    gap:10px;
+    max-width:70ch;
+  }
+  .points li{
+    position:relative;
+    padding-left:26px;
+    color:var(--ink-2);
+    font-size:15px;
+  }
+  .points li::before{
+    content:"";
+    position:absolute;
+    left:2px;
+    top:.46em;
+    width:9px;height:9px;
+    border-top:2px solid var(--blue);
+    border-right:2px solid var(--blue);
+    transform:rotate(45deg);
+  }
+  .source-note{
+    margin:32px 0 0;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-size:13px;
+    color:var(--ink-2);
+  }
+
+  /* =========================================================
+     6. SECCIONES
+     ========================================================= */
+  .section{padding:88px 0;border-top:1px solid var(--line-soft)}
+  .section--alt{background:linear-gradient(180deg, #FFFFFF 0%, #F4F6F8 100%)}
+  .section-head{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:32px;
+    align-items:end;
+    margin:0 0 40px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--line);
+  }
+  .section-head p{margin:0;font-size:15px;color:var(--ink-2);max-width:52ch}
+  .block{margin-top:56px}
+  .block:first-of-type{margin-top:0}
+  .block > h3{margin:0 0 16px;display:flex;align-items:center;gap:12px}
+  .block > h3::before{content:"";width:10px;height:10px;background:var(--blue);flex:none}
+  .block-note{font-size:13px;color:var(--ink-2);margin:0 0 20px;max-width:76ch}
+
+  /* =========================================================
+     7. MARCA: TRES VARIANTES
+     ========================================================= */
+  .variants{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:20px;
+  }
+  .variant{
+    display:flex;
+    flex-direction:column;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#fff;
+    box-shadow:0 1px 0 #fff, 0 2px 5px rgba(11,46,71,.12), inset 0 1px 0 rgba(255,255,255,.9);
+    overflow:hidden;
+  }
+  .variant-stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:180px;
+    padding:28px 20px;
+    flex:1;
+  }
+  .stage-light{background:#F4F6F8;box-shadow:inset 0 0 0 1px rgba(11,46,71,.05)}
+  .stage-paper{background:#FFFFFF}
+  .stage-dark{background:linear-gradient(135deg, #124C76 0%, #0B2E47 100%)}
+  .variant-body{padding:18px 20px 22px;border-top:1px solid var(--line)}
+  .variant-body h3{margin:0 0 8px;font-size:13px;letter-spacing:.2em}
+  .variant-body p{margin:0;font-size:14px;color:var(--ink-2)}
+  .variant-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+    margin:0 0 10px;
+  }
+
+  /* =========================================================
+     8. RECURSOS DE INTERFAZ: CHEVRON Y PLAYHEAD
+     ========================================================= */
+  .resources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+  .resource{
+    display:grid;
+    grid-template-columns:132px minmax(0,1fr);
+    gap:20px;
+    align-items:center;
+    padding:24px;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#fff;
+    box-shadow:inset 0 3px 6px rgba(11,46,71,.28), inset 0 -2px 3px rgba(255,255,255,.92), inset 0 0 0 1px rgba(11,46,71,.06);
+  }
+  .resource-stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:112px;
+    background:var(--blue-50);
+    border:1px solid var(--line);
+    border-radius:2px;
+  }
+  .resource-stage .glyph{width:40px}
+  .resource-stage .glyph--playhead{width:18px}
+  .resource h3{margin:0 0 8px;font-size:13px;letter-spacing:.2em}
+  .resource p{margin:0;font-size:14px;color:var(--ink-2)}
+  .use-list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+  .use-list li{position:relative;padding-left:18px;font-size:13px;color:var(--ink-2)}
+  .use-list li::before{content:"";position:absolute;left:0;top:.5em;width:7px;height:7px;background:var(--blue)}
+  .use-list--no li::before{background:transparent;border:1px solid var(--ink-3);border-radius:50%}
+
+  /* =========================================================
+     9. TAMANOS MINIMOS A TAMANO REAL, CON SU COTA
+     Cada specimen lleva su cota: linea fina con topes en los
+     extremos y la medida encima. La linea mide EXACTAMENTE el
+     ancho de la pieza (variable --w), no el de la tarjeta.
+     Ningun specimen lleva fondo azul: todos van sobre fondo
+     neutro claro, como el resto de las piezas de marca.
+     ========================================================= */
+  .minsizes{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:20px;
+    align-items:start;
+  }
+  .min-item{
+    padding:20px;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#fff;
+    box-shadow:0 1px 0 #fff, 0 2px 4px rgba(11,46,71,.14);
+  }
+  .min-stage{
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    min-height:116px;
+    padding:24px 0 14px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:12px;
+    background:#fff;
+  }
+  .min-specimen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+  }
+  .min-cota{
+    width:var(--w,24px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .min-cota-label{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.1em;
+    line-height:1.1;
+    color:var(--ink-2);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .min-cota-line{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:var(--w,24px);
+    height:9px;
+  }
+  .min-cota-tope{flex:none;width:1px;height:9px;background:var(--blue)}
+  .min-cota-rule{flex:1 1 auto;height:1px;background:var(--blue)}
+  .min-piece{display:flex;align-items:flex-end;justify-content:center}
+  .min-label{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+    margin:0 0 6px;
+  }
+  .min-item p.small{margin:0;font-size:13px}
+
+  /* =========================================================
+     10. AREA DE RESPETO: EL ESQUEMA DE PENPOT
+     El logotipo va en el centro y el simbolo TOMADO DEL PROPIO
+     LOGOTIPO se repite al 50 por ciento de opacidad pegado a cada
+     uno de los cuatro lados, sin separacion. La linea azul encierra
+     la composicion completa y dentro no hay ningun relleno.
+     Geometria del viewBox oficial (552,23 por 141,34):
+       alto del logotipo  = ancho / 3,907
+       chevron            = 54,31 de ancho por 72,42 de alto
+       X (area de respeto) = alto del chevron, que es la proporcion
+                             mayor del simbolo
+     Todo se calcula con variables, asi que al reducir el ancho del
+     logotipo se reduce la composicion sin perder la geometria.
+     ========================================================= */
+  .respect{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    gap:40px;
+    align-items:start;
+    padding:28px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:2px;
+    box-shadow:0 1px 0 #fff, 0 2px 5px rgba(11,46,71,.12);
+  }
+  .respect-figure{
+    --rw:var(--logo-respect-w);                       /* ancho del logotipo */
+    --rh:calc(var(--rw) / 3.907);                     /* alto del logotipo  */
+    --rcw:calc(var(--rw) * 54.31 / 552.23);           /* ancho del chevron  */
+    --rch:calc(var(--rw) * 72.42 / 552.23);           /* alto del chevron   */
+    --rcomp-w:calc(var(--rw) + var(--rw) * 108.62 / 552.23);  /* + 2 chevrones */
+    --rcomp-h:calc(var(--rh) + var(--rw) * 144.84 / 552.23);  /* + 2 chevrones */
+    margin:0;
+    padding:0;
+  }
+  .respect-composition{
+    box-sizing:content-box;
+    width:var(--rcomp-w);
+    height:var(--rcomp-h);
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    /* La linea azul que encierra toda la composicion. */
+    border:1px solid var(--blue);
+    /* Sin relleno dentro: el area de respeto es aire, no una caja. */
+    background:transparent;
+  }
+  .respect-row{
+    display:flex;
+    gap:0;
+    align-items:center;
+    flex:none;
+    width:var(--rcomp-w);
+    height:var(--rh);
+  }
+  .respect-side{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0;
+    flex:none;
+  }
+  .respect-side--top,
+  .respect-side--bottom{width:var(--rcomp-w);height:var(--rch)}
+  .respect-side--left,
+  .respect-side--right{width:var(--rcw);height:var(--rh)}
+  .respect-logo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:none;
+    width:var(--rw);
+    height:var(--rh);
+  }
+  .respect-logo .logo{width:var(--rw);height:var(--rh)}
+  /* El simbolo del logotipo, al 50 por ciento de opacidad y al mismo tamano
+     que el que va dentro de la marca. */
+  .respect-chev{width:var(--rcw);height:var(--rch);opacity:.5}
+  .respect-notes{min-width:0}
+  .respect-caption{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 16px;
+  }
+  .respect-legend{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+  .respect-legend li{
+    display:grid;
+    grid-template-columns:12px minmax(0,1fr);
+    gap:12px;
+    align-items:start;
+    font-size:13px;
+    color:var(--ink-2);
+  }
+  .respect-legend .glyph{width:9px;height:12px;margin-top:4px}
+  .respect-legend strong{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--ink);
+  }
+  .respect-medidas{
+    margin:20px 0 0;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--blue-700);
+  }
+  .respect-nota{margin:10px 0 0;font-size:12px;color:var(--ink-3)}
+
+  /* =========================================================
+     11. INDICE GENERAL DE LA PAGINA
+     Numero, vineta, titulo con frase corta y columna de estado.
+     Cada titulo es un enlace al id de su seccion.
+     ========================================================= */
+  .index-head{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 24px;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:0;
+    padding:0 0 12px;
+    border-bottom:2px solid var(--blue);
+  }
+  .index-head span{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+  }
+  .index-head .index-count{color:var(--ink-3)}
+  .index-list{list-style:none;margin:0;padding:0}
+  .index-row{
+    position:relative;
+    display:grid;
+    grid-template-columns:56px 20px minmax(0,1fr) 132px;
+    gap:18px;
+    align-items:center;
+    padding:22px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .index-row:last-child{border-bottom:0}
+  .index-num{
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:.14em;
+    color:var(--blue);
+  }
+  .index-row .glyph{width:12px;height:16px}
+  .index-title{
+    display:block;
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.02em;
+    line-height:1.2;
+    color:var(--ink);
+  }
+  a.index-title:hover,a.index-title:focus-visible{color:var(--blue)}
+  /* Toda la fila responde al puntero, pero el enlace real es el titulo. */
+  a.index-title::after{content:"";position:absolute;inset:0}
+  .index-desc{
+    display:block;
+    margin-top:6px;
+    font-size:13px;
+    color:var(--ink-2);
+    max-width:62ch;
+  }
+  .index-state{
+    justify-self:end;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    text-align:right;
+  }
+  .index-state--on{color:var(--blue)}
+  .index-state--plan{color:var(--ink-3)}
+  /* Fila de subseccion: dentro de un bloque, un escalon mas pequena. */
+  .index-row--sub{padding:14px 0 14px 56px}
+  .index-row--sub .index-num{font-size:11px}
+  .index-row--sub .index-title{font-size:16px;letter-spacing:.04em}
+
+  /* =========================================================
+     12. PROPOSITO Y CINCO PILARES (PAGINA 02 DEL ARCHIVO)
+     La frase de proposito va a tamano de declaracion, el bloque
+     de "que significa la marca" lleva su filete y los pilares se
+     ordenan en reticula, cada uno con su numero, su nombre corto
+     en mayusculas, una linea de detalle y el icono de columna.
+     ========================================================= */
+  .purpose{
+    margin:0;
+    font-size:clamp(21px,2.9vw,34px);
+    line-height:1.32;
+    letter-spacing:-.005em;
+    color:var(--ink);
+    max-width:30ch;
+    font-weight:600;
+  }
+  .meaning{margin:36px 0 0;max-width:82ch}
+  .meaning-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:0 0 14px;
+    padding-bottom:12px;
+    border-bottom:1px solid rgba(29,29,28,.10);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--blue);
+  }
+  .meaning-head::before{content:"";width:9px;height:9px;background:var(--blue);flex:none}
+  .meaning-text{margin:0;font-size:16px;line-height:1.62;color:var(--ink-2)}
+  .pillars-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:36px 0 14px;
+    padding-bottom:12px;
+    border-bottom:1px solid rgba(29,29,28,.10);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--blue);
+  }
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:12px;
+  }
+  .pillar{
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap:7px;
+    min-height:72px;
+    padding:14px 0 0;
+    border-top:2px solid var(--blue);
+  }
+  /* El icono de columna es la misma pieza para los cinco pilares:
+     una columna vertical de esquinas rectas, en azul de marca. */
+  .pillar-top{display:flex;align-items:center;gap:10px}
+  .pillar-icon{display:block;flex:none;width:17px;height:22px;fill:var(--blue);color:var(--blue)}
+  .pillar-detail{margin:0;font-size:12px;line-height:1.45;color:var(--ink-2)}
+  .pillar-num{
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.18em;
+    color:var(--blue);
+    line-height:1.1;
+  }
+  .pillar-name{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.06em;
+    line-height:1.2;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+
+  /* =========================================================
+     13. TOKENS EN VIVO
+     ========================================================= */
+  .token-status{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px 16px;
+    margin:0 0 24px;
+    padding:12px 16px;
+    border:1px solid var(--line);
+    border-left:3px solid var(--blue);
+    border-radius:2px;
+    background:var(--blue-50);
+    font-size:13px;
+    color:var(--ink-2);
+  }
+  .token-status--fallback{border-left-color:var(--warn);background:rgba(240,168,104,.12)}
+  .token-status strong{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+  }
+  .token-status--fallback strong{color:var(--ink)}
+  .token-counts{
+    margin-left:auto;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.1em;
+    color:var(--blue-700);
+    text-transform:uppercase;
+  }
+  .palette{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+  .swatch{
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#fff;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .swatch-chip{
+    height:72px;
+    box-shadow:inset 0 0 0 1px rgba(11,46,71,.14);
+  }
+  .swatch-body{padding:12px}
+  .swatch-name{
+    margin:0;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+    word-break:break-word;
+  }
+  .swatch-hex{
+    margin:4px 0 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+    font-size:12px;
+    color:var(--blue-700);
+  }
+  .swatch-desc{margin:6px 0 0;font-size:12px;color:var(--ink-3);line-height:1.4}
+  .typescale{display:grid;gap:0;border-top:1px solid var(--line)}
+  .ts-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:24px;
+    align-items:center;
+    padding:16px 4px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .ts-name{
+    margin:0;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+  }
+  .ts-spec{
+    margin:2px 0 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+    font-size:12px;
+    color:var(--ink-2);
+  }
+  .ts-desc{margin:4px 0 0;font-size:12px;color:var(--ink-3)}
+  .ts-sample{
+    margin:0;
+    line-height:1;
+    color:var(--ink);
+    letter-spacing:0;
+    white-space:nowrap;
+  }
+  .spacescale{display:grid;gap:8px}
+  .sp-row{
+    display:grid;
+    grid-template-columns:56px 72px minmax(0,1fr);
+    gap:16px;
+    align-items:center;
+    padding:6px 0;
+  }
+  .sp-name{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-700)}
+  .sp-val{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+    font-size:12px;
+    color:var(--ink-2);
+    text-align:right;
+  }
+  .sp-bar-wrap{background:var(--blue-50);border:1px solid var(--line);height:14px}
+  .sp-bar{height:100%;background:var(--blue)}
+
+  /* =========================================================
+     14. GALERIA UNICA DE 20 MATERIALES
+     La diagramacion es la de la landing: rejilla de cuatro
+     columnas por cinco filas (columna por grupo, fila por
+     numero). El material va limpio dentro de su recuadro y su
+     rotulo, con codigo, nombre y frase, va FUERA, debajo, como
+     pie de la celda.
+     Las RECETAS son las de la referencia congelada, copiadas
+     con sus valores exactos: sombras internas y externas,
+     desplazamientos, difusiones, velo, bordes de luz, grano y
+     desenfoque con su saturacion, brillo y contraste. Nada de
+     eso cambia al mover el rotulo.
+     ========================================================= */
+  .mat-head{
+    display:grid;
+    /* La columna B es mas ancha que las otras tres: el neumorfismo necesita
+       aire a los lados y con columnas iguales no cabia. La cabecera usa la
+       misma plantilla para que cada rotulo siga cayendo sobre su columna. */
+    grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr);
+    gap:16px;
+    padding:0 16px;
+    margin:0 0 8px;
+  }
+  .mat-head span{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+    padding-bottom:8px;
+    border-bottom:2px solid var(--blue);
+  }
+  .mat-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr);
+    gap:16px;
+    padding:16px;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:var(--scene);
+  }
+  /* Escenario de la zona de pruebas: las dos columnas de arriba y la
+     rejilla que va debajo comparten un mismo plano relativo, y el cubo
+     arrastrable se mueve en una capa propia por encima del conjunto
+     entero, de modo que puede pasar por encima de todas las celdas. */
+  .mat-stage{position:relative}
+  /* La celda: el material arriba, limpio, sin texto encima ni dentro,
+     y su rotulo debajo. El rotulo no se pierde: cambia de sitio.
+     El contenido se centra en vertical porque la fila del grupo B es mas alta
+     que las demas (su campo necesita aire arriba y abajo) y asi los cuatro
+     materiales de la fila quedan alineados por su centro, no colgando. */
+  .mat-cell{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:10px;
+    margin:0;
+    min-width:0;
+  }
+  /* EL CAMPO DE CADA MATERIAL: la superficie sobre la que se apoya la caja.
+     No es decoracion. Cada receta se aprobo sobre un fondo del mismo orden de
+     claridad que su propio relleno, y sin ese fondo las sombras exteriores se
+     pierden sobre el azul de la rejilla: el neumorfismo quedaba en una caja
+     blanca plana, el canto de luz del bajo relieve desaparecia y el vidrio
+     neutro se leia azul porque no tenia nada claro que desenfocar. El campo no
+     toca ni un valor de receta: solo cambia el color de lo que hay detras. El
+     rotulo sigue fuera, sobre la rejilla. */
+  .mat-field{
+    display:block;
+    padding:20px 18px;
+    border:1px solid rgba(255,255,255,.95);
+    border-radius:2px;
+  }
+  /* A, bajo relieve: campo claro un punto mas oscuro que el relleno de la
+     caja, para que el canto de luz del bisel y el halo azul de A3 se lean y
+     la caja tenga de donde salir. */
+  .mat-field--a{
+    background:linear-gradient(170deg,#EAF2F8,#CFE2F0);
+  }
+  /* B, neumorfismo: el color base neumorfico del sistema, identico al relleno
+     de la caja. Es la condicion del material: caja y fondo del mismo color,
+     de modo que solo las dos sombras construyen el volumen. */
+  .mat-field--b{
+    background:var(--neu);
+    border-color:rgba(255,255,255,.9);
+    /* EL ESPACIO DEL GRUPO B.
+       Aqui no se toca ni un valor de receta: se le da al campo el aire que la
+       receta pide. B1 desplaza 8 px con 18 px de difusion y se agota a 26 px de
+       la caja; B2 desplaza 26 px con 52 px de difusion y reparte sombra hasta
+       78 px. Con el relleno de 20 px y 18 px que comparten los cuatro campos, la
+       difusion de B2 se cortaba contra el borde, se quedaba sin fondo del mismo
+       color donde caer y terminaba leyendose como B1. Con 60 px por los cuatro
+       lados la sombra de B2 cabe entera en su desplazamiento y en la mitad
+       larga de su difusion, y cada variante se lee como es: B1 pegada a la caja,
+       B2 amplia y flotando. Ese aire tambien impide que la sombra de una celda
+       se monte sobre la siguiente, porque el hueco de la rejilla es de 16 px. */
+    padding:60px;
+  }
+  /* C, vidrio neutro: el campo claro con volumen que el sistema ya declara
+     para la zona de pruebas, de modo que el vidrio sin tinte tenga algo que
+     desenfocar y se lea neutro en vez de azul. */
+  .mat-field--c{
+    background:var(--stage);
+  }
+  /* D, vidrio azul: el mismo tipo de campo, corrido a los azules de la
+     paleta, que es lo que el vidrio de marca necesita detras para leerse
+     azul y no gris. */
+  .mat-field--d{
+    background:
+      radial-gradient(420px 240px at 18% 6%, rgba(234,242,248,.92), rgba(234,242,248,0) 72%),
+      radial-gradient(380px 260px at 88% 96%, rgba(26,108,167,.40), rgba(26,108,167,0) 76%),
+      linear-gradient(160deg,#CFE2F0 0%,#7FB0D4 100%);
+  }
+  .specimen{
+    position:relative;
+    display:block;
+    min-height:140px;
+    padding:14px;
+    border-radius:2px;
+    overflow:hidden;
+  }
+  /* El rotulo va fuera del recuadro, sobre el fondo azul de la escena de la
+     galeria, asi que se escribe en las tintas claras de la paleta. */
+  .mat-cap{display:flex;flex-direction:column;gap:3px;padding:0 2px}
+  .mat-code{
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--blue-300);
+  }
+  .mat-name{font-size:13px;font-weight:700;letter-spacing:.06em;color:#FFFFFF}
+  .mat-desc{font-size:11px;line-height:1.35;color:var(--blue-100)}
+
+  /* Grupo A: bajo relieve. Receta de la referencia, valor por valor.
+     La referencia anade contain:layout paint al especimen. Aqui se conserva
+     contain:layout y se omite paint a proposito: paint recorta lo que se pinta
+     fuera de la caja y las difusiones grandes de la receta (B2 llega a 52 px de
+     difusion y el halo de A3 a 62 px) quedarian cortadas. contain no es un
+     valor de material; el color si hace falta, porque el codigo y el nombre del
+     especimen van escritos encima de la caja. */
+  .specimen.a{
+    background:linear-gradient(160deg,#F3F8FC,#DBE6F0);
+    border:1px solid rgba(255,255,255,.62);
+    color:var(--ink);
+    contain:layout paint;
+  }
+  .specimen.a .plate{position:absolute;display:block;z-index:0}
+  .a1{
+    box-shadow:
+      inset 6px 6px 14px rgba(116,138,162,.85),
+      inset -6px -6px 14px rgba(255,255,255,1),
+      0 1px 0 rgba(255,255,255,.9);
+  }
+  .a1 .plate{
+    inset:28% 22%;
+    background:linear-gradient(160deg,#F5FAFD,#DCE7F0);
+    box-shadow:
+      3px 3px 9px rgba(116,138,162,.8),
+      -3px -3px 9px rgba(255,255,255,1),
+      inset 0 1px 0 #fff;
+  }
+  .a2{
+    box-shadow:
+      inset 8px 8px 14px rgb(112 132 152),
+      inset -14px -14px 26px rgba(255,255,255,1),
+      inset 0 0 0 1px rgba(255,255,255,.7),
+      0 2px 0 rgba(255,255,255,.95);
+  }
+  .a2 .plate{
+    inset:30% 24%;
+    background:linear-gradient(160deg,#F7FBFE,#D8E4EE);
+    box-shadow:
+      4px 4px 8px rgba(112,132,152,.72),
+      -4px -4px 8px rgba(255,255,255,1),
+      inset 0 4px 0 rgba(255,255,255,.9);
+  }
+  .a3{
+    box-shadow:
+      inset 9px 9px 22px rgba(90,112,134,.82),
+      inset -9px -9px 22px rgba(255,255,255,1),
+      0 18px 36px rgba(26,108,167,.30),
+      0 0 62px rgba(26,108,167,.26);
+  }
+  .a3 .plate{
+    inset:28% 26%;
+    background:radial-gradient(130% 150% at 50% 0%, #FFFFFF 0%, #E4EDF5 72%);
+    box-shadow:
+      inset 0 -8px 16px rgba(26,108,167,.32),
+      inset 0 5px 10px rgba(255,255,255,1),
+      5px 7px 16px rgba(112,132,152,.58);
+  }
+  .a4{
+    box-shadow:
+      8px 10px 20px rgba(114,136,160,.85),
+      -8px -10px 20px rgba(255,255,255,1),
+      inset 0 4px 0 rgba(255,255,255,1),
+      inset 0 -4px 8px rgba(114,136,160,.7);
+  }
+  .a4 .plate{
+    inset:30% 24%;
+    background:linear-gradient(160deg,#F0F6FB,#DFE9F2);
+    box-shadow:
+      inset 6px 6px 14px rgba(114,136,160,.86),
+      inset -6px -6px 14px rgba(255,255,255,1);
+  }
+  .a5{
+    box-shadow:
+      inset 0 5px 3px rgba(255,255,255,.95),
+      inset 5px 0 3px rgba(255,255,255,.62),
+      inset 0 -5px 4px rgba(132,152,172,.46),
+      inset -5px 0 4px rgba(132,152,172,.34),
+      inset 0 0 4px rgba(132,152,172,.26),
+      0 14px 26px rgba(11,46,71,.12);
+  }
+  .a5 .plate{
+    inset:32% 26%;
+    background:linear-gradient(150deg,#FFFFFF,#D7E3EF);
+    box-shadow:
+      inset 0 5px 3px rgba(255,255,255,.95),
+      inset 0 -5px 4px rgba(132,152,172,.46),
+      inset 5px 0 3px rgba(255,255,255,.7),
+      inset -5px 0 4px rgba(132,152,172,.36),
+      0 8px 16px rgba(11,46,71,.14);
+  }
+
+  /* Grupo B: neumorfismo. Receta de la referencia, valor por valor.
+     Mismo criterio que en el grupo A: contain:layout si, contain:paint no. */
+  .specimen.b{background:var(--neu);color:var(--ink);contain:layout}
+  .b1{
+    box-shadow:
+      8px 8px 18px rgba(163,177,198,.66),
+      -8px -8px 18px rgba(255,255,255,.98);
+  }
+  .b2{
+    box-shadow:
+      26px 26px 52px rgba(163,177,198,.55),
+      -26px -26px 52px rgba(255,255,255,1);
+  }
+  .b3{
+    box-shadow:
+      11px 11px 22px rgba(120,140,162,.92),
+      -11px -11px 22px rgba(255,255,255,1),
+      inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  .b4{
+    background:var(--neu);
+    box-shadow:
+      inset 13px 13px 26px rgba(163,177,198,.9),
+      inset -13px -13px 26px rgba(255,255,255,1);
+  }
+  .b5{
+    box-shadow:
+      10px 10px 22px rgba(150,168,186,.62),
+      -10px -10px 22px rgba(255,255,255,.98),
+      inset 0 4px 3px rgba(255,255,255,.95),
+      inset 4px 0 3px rgba(255,255,255,.68),
+      inset 0 -5px 4px rgba(163,177,198,.6),
+      inset -5px 0 4px rgba(163,177,198,.46),
+      inset 0 0 4px rgba(163,177,198,.24);
+  }
+  .specimen.b5{background:linear-gradient(160deg,#EAF0F7,#DEE7F0)}
+
+  /* =========================================================
+     15. GRUPOS C Y D: LA LAMINA DE VIDRIO
+     Receta de la referencia congelada, sin aberracion cromatica:
+     borde de luz neutro, matiz de blanco y azul de 1 px, blur,
+     saturacion, brillo, contraste, brillo de canto, reflejo
+     especular y grano. La numeracion y el texto viven fuera de
+     la lamina en la referencia; aqui van encima, en su propia
+     capa, para no tocar ni un valor del vidrio.
+     ========================================================= */
+  .gl{
+    position:relative;
+    overflow:hidden;
+    background:transparent;
+    /* La sombra exterior vive en el marco: el recorte se come la de la lamina. */
+    box-shadow:0 14px 28px rgba(11,46,71,.16);
+  }
+  .glass{
+    --b:8px; --sat:160%; --br:105%; --ct:103%; --fa:.14;
+    position:absolute;
+    inset:0;
+    z-index:2;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.62);
+    background-color:rgba(255,255,255,var(--fa));
+    background-image:linear-gradient(148deg,
+      rgba(255,255,255,.40) 0%,
+      rgba(255,255,255,.12) 40%,
+      rgba(255,255,255,.04) 58%,
+      rgba(255,255,255,.26) 100%);
+    backdrop-filter:blur(var(--b)) saturate(var(--sat)) brightness(var(--br)) contrast(var(--ct));
+    -webkit-backdrop-filter:blur(var(--b)) saturate(var(--sat)) brightness(var(--br)) contrast(var(--ct));
+    box-shadow:
+      inset 0 3px 0 rgba(255,255,255,.92),
+      inset 0 -5px 14px rgba(11,46,71,.18),
+      inset 3px 0 0 rgba(255,255,255,.5),
+      inset -3px 0 0 rgba(255,255,255,.3),
+      0 16px 32px rgba(11,46,71,.16);
+  }
+
+  /* Borde de luz neutro: blanco arriba, azul apenas abajo, 1 px. */
+  .edge{
+    position:absolute;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+    box-shadow:
+      inset 1px 1px 0 rgba(255,255,255,.5),
+      inset -1px -1px 0 rgba(127,176,212,.3),
+      inset 0 0 0 1px rgba(255,255,255,.26);
+  }
+  .edge::before,
+  .edge::after{
+    content:"";
+    position:absolute;
+    inset:1px;
+    border:1px solid;
+    pointer-events:none;
+  }
+  .edge::before{border-color:rgba(255,255,255,.34);transform:translate3d(-1px,0,0)}
+  .edge::after{border-color:rgba(127,176,212,.24);transform:translate3d(1px,0,0)}
+
+  /* Grano fino sobre el vidrio. */
+  .gr{
+    position:absolute;
+    inset:0;
+    z-index:5;
+    pointer-events:none;
+    background-image:var(--noise);
+    background-size:150px 150px;
+    opacity:.1;
+  }
+
+  /* Progresion del grupo C: desenfoque de 2 a 24 px, nada mas. */
+  .c1 .glass{ --b:2px;  --sat:128%; --br:104%; --ct:102%; --fa:.05; }
+  .c2 .glass{ --b:7px;  --sat:160%; --br:106%; --ct:104%; --fa:.11; }
+  .c3 .glass{ --b:12px; --sat:190%; --br:108%; --ct:106%; --fa:.17; }
+  .c4 .glass{ --b:18px; --sat:215%; --br:110%; --ct:109%; --fa:.23; }
+  .c5 .glass{ --b:24px; --sat:238%; --br:112%; --ct:112%; --fa:.30; }
+  .c5 .glass{
+    box-shadow:
+      inset 0 5px 0 rgba(255,255,255,1),
+      inset 0 -7px 18px rgba(11,46,71,.22),
+      inset 4px 0 0 rgba(255,255,255,.58),
+      inset -4px 0 0 rgba(255,255,255,.38),
+      0 20px 38px rgba(11,46,71,.18);
+  }
+
+  /* Progresion del grupo D: tinte azul progresivo. */
+  .gl-d .glass{
+    background-color:transparent;
+    background-image:linear-gradient(150deg,
+      rgba(127,176,212,var(--ta,.4)) 0%,
+      rgba(26,108,167,var(--tb,.24)) 46%,
+      rgba(18,76,118,var(--tc,.2)) 100%);
+  }
+  .d1 .glass{ --b:6px;  --sat:150%; --br:104%; --ct:102%; --ta:.26; --tb:.10; --tc:.08; }
+  .d2 .glass{ --b:10px; --sat:178%; --br:104%; --ct:104%; --ta:.40; --tb:.20; --tc:.16; }
+  .d3 .glass{ --b:15px; --sat:205%; --br:101%; --ct:107%; --ta:.52; --tb:.32; --tc:.28; }
+  .d4 .glass{ --b:20px; --sat:232%; --br:98%;  --ct:110%; --ta:.70; --tb:.56; --tc:.50; }
+  .d5 .glass{ --b:24px; --sat:250%; --br:95%;  --ct:114%; --ta:.84; --tb:.74; --tc:.66; }
+  .d4 .glass,
+  .d5 .glass{
+    border-color:rgba(255,255,255,.78);
+    box-shadow:
+      inset 0 4px 0 rgba(255,255,255,.9),
+      inset 0 -8px 20px rgba(0,0,0,.3),
+      inset 4px 0 0 rgba(255,255,255,.36),
+      0 20px 40px rgba(11,46,71,.24);
+  }
+
+  /* Respaldo sin backdrop-filter: el vidrio se vuelve opaco. */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .glass{ background-color:rgba(240,246,251,.78); }
+    .gl-d .glass{ background-color:rgba(26,108,167,.5); }
+  }
+
+  /* En la galeria los vidrios C y D se pintan por ENCIMA del cubo
+     arrastrable, igual que en la referencia: tarjetas A y B (auto) <
+     cubo (z 2) < vidrios C y D (z 3). Asi cada lamina recorta,
+     desenfoca y tine el cubo al pasarle por detras. El puntero los
+     atraviesa para que el cubo se pueda tomar aunque este debajo. */
+  .mat-stage .specimen.gl{z-index:3;pointer-events:none}
+
+  /* Tabla de asignacion por funcion y por medida */
+  .assign{width:100%;border-collapse:collapse;margin-top:28px;font-size:14px}
+  .assign caption{
+    text-align:left;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+    padding:0 0 12px;
+  }
+  .assign th,.assign td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  .assign thead th{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-2);
+    border-bottom:2px solid var(--blue);
+  }
+  .assign td:first-child{font-weight:700;color:var(--ink)}
+  .assign td:nth-child(2){
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+    font-size:12px;
+    color:var(--blue-700);
+    white-space:nowrap;
+  }
+  .assign td:last-child{color:var(--ink-2)}
+
+  /* =========================================================
+     16. REGLAS, USOS, FONDOS Y FORMAS
+     ========================================================= */
+
+  /* Reglas de uso: vineta con la forma del simbolo del logotipo */
+  .rules{list-style:none;margin:0;padding:0;display:grid;gap:0;max-width:92ch}
+  .rule{
+    display:grid;
+    grid-template-columns:16px minmax(0,1fr);
+    gap:14px;
+    align-items:start;
+    padding:16px 0;
+    border-bottom:1px solid var(--line-soft);
+    font-size:15px;
+    color:var(--ink);
+  }
+  .rule:last-child{border-bottom:0}
+  .rule .glyph{width:11px;height:14px;margin-top:4px;flex:none}
+
+  /* Usos incorrectos: el rojo solo aqui, porque senala un error */
+  .misuse{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+  }
+  .misuse-card{
+    display:flex;
+    flex-direction:column;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:2px;
+    box-shadow:0 1px 0 #fff, 0 2px 4px rgba(11,46,71,.12);
+    overflow:hidden;
+  }
+  .misuse-bar{display:block;height:3px;background:var(--err)}
+  .misuse-body{padding:16px 18px 20px}
+  .misuse-tag{
+    display:block;
+    margin:0 0 8px;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--err);
+  }
+  .misuse-body p:last-child{margin:0;font-size:14px;color:var(--ink)}
+
+  /* Fondos permitidos: cada fondo con la variante que le toca */
+  .grounds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+  .ground{
+    display:flex;
+    flex-direction:column;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#fff;
+    overflow:hidden;
+    box-shadow:0 1px 0 #fff, 0 2px 5px rgba(11,46,71,.12);
+  }
+  .ground-stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:136px;
+    padding:28px 20px;
+  }
+  .ground-stage .logo{width:200px}
+  .ground-stage--paper{background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(11,46,71,.06)}
+  .ground-stage--base{background:#F4F6F8}
+  .ground-stage--deep{background:linear-gradient(135deg, #124C76 0%, #0B2E47 100%)}
+  .ground-body{padding:16px 18px 20px;border-top:1px solid var(--line)}
+  .ground-tag{
+    display:block;
+    margin:0 0 8px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--blue);
+  }
+  .ground-body h3{margin:0 0 8px;font-size:13px;letter-spacing:.18em}
+  .ground-body p{margin:0;font-size:13px;color:var(--ink-2)}
+
+  /* Formas del logo como recursos: cuatro piezas, cuatro usos */
+  .shapes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+  .shape{
+    display:flex;
+    flex-direction:column;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#fff;
+    overflow:hidden;
+    box-shadow:0 1px 0 #fff, 0 2px 4px rgba(11,46,71,.12);
+  }
+  .shape-stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:120px;
+    padding:24px;
+    background:#fff;
+    box-shadow:inset 0 0 0 1px rgba(11,46,71,.05);
+  }
+  .shape-body{padding:16px 18px 20px;border-top:1px solid var(--line)}
+  .shape-tag{
+    display:block;
+    margin:0 0 8px;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--blue);
+  }
+  .shape-body h3{margin:0 0 8px;font-size:12px;letter-spacing:.14em}
+  .shape-body p{margin:0;font-size:12px;color:var(--ink-2)}
+
+  /* =========================================================
+     17. LA PIEZA ARRASTRABLE DE LA GALERIA DE MATERIALES
+     La seccion se abre en dos columnas: a la izquierda el objeto
+     de prueba con su explicacion y para que sirve pasarlo por los
+     materiales; a la derecha el area del objeto, con su espacio de
+     salida, el boton de recolocar y el texto de estado. Debajo va
+     la rejilla de los veinte materiales a ancho completo, porque
+     el cubo tiene que poder pasar por encima de todas las celdas.
+     Su campo de arrastre es una capa propia que cubre las dos
+     columnas y la rejilla entera. Orden de capas dentro del
+     escenario:
+       columnas, rejilla A y B (auto) < area del objeto (z 1)
+       < cubo (z 2) < vidrios C y D de la rejilla (z 3)
+       < controles (z 4)
+     De ahi que el cubo se vea entero sobre el relieve y el
+     neumorfismo, y que cada vidrio de los grupos C y D lo recorte,
+     lo desenfoque y lo tina al pasarle por detras.
+     Nada de esto tapa el resto de la pagina ni provoca scroll
+     horizontal: el cubo se acota siempre a su escenario.
+     ========================================================= */
+  .mat-top{
+    display:grid;
+    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+    gap:20px;
+    align-items:stretch;
+    margin:0 0 28px;
+  }
+  .pyr-copy{
+    min-width:0;
+    padding:24px;
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-left:4px solid var(--blue);
+    border-radius:2px;
+    box-shadow:0 1px 0 #fff, 0 2px 6px rgba(11,46,71,.12);
+  }
+  .pyr-flag{
+    display:inline-block;
+    padding:6px 16px;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#FFFFFF;
+    background:linear-gradient(145deg,#1A6CA7 0%,#124C76 54%,#0B2E47 100%);
+    clip-path:polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+  .pyr-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:16px 0 10px;
+    font-size:13px;
+    letter-spacing:.16em;
+  }
+  .pyr-title::before{content:"";width:9px;height:9px;background:var(--blue);flex:none}
+  .pyr-desc{margin:0;font-size:14px;color:var(--ink-2);max-width:64ch}
+  .pyr-desc + .pyr-desc{margin-top:12px}
+  .pyr-keys{
+    margin:14px 0 0;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--ink-3);
+  }
+  /* Columna derecha: el area del objeto. Su hueco es el espacio de
+     salida, el sitio del que sale y al que vuelve al recolocarlo. */
+  .pyr-dock{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    min-width:0;
+    padding:16px;
+    border:1px dashed rgba(26,108,167,.30);
+    background:rgba(255,255,255,.30);
+  }
+  /* Campo de arrastre: una capa transparente sobre las dos columnas
+     y la rejilla. No pinta nada y deja pasar el puntero, salvo en el
+     cubo. Sus coordenadas son las del cubo: izquierda 0 y arriba 0. */
+  .pyr-field{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    overflow:hidden;
+    background:transparent;
+    pointer-events:none;
+  }
+  .pyr-tools{
+    position:relative;
+    z-index:4;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px 16px;
+  }
+  .pyr-btn{
+    font-family:var(--font);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+    background:rgba(255,255,255,.94);
+    border:1px solid rgba(26,108,167,.34);
+    border-radius:0;
+    padding:11px 18px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 6px 14px rgba(11,46,71,.12);
+    transition:background-color .16s ease, border-color .16s ease;
+  }
+  .pyr-btn:hover{background:#FFFFFF;border-color:rgba(26,108,167,.6)}
+  .pyr-state{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--blue-900);
+  }
+  /* Espacio de salida: el hueco libre del area del objeto. Crece con
+     la columna para que el cubo nunca nazca encima de los controles. */
+  .pyr-slot{
+    position:relative;
+    display:flex;
+    flex:1 1 auto;
+    align-items:flex-start;
+    justify-content:center;
+    min-height:224px;
+    padding:10px 0;
+    background:rgba(207,226,240,.42);
+    border:2px dashed rgba(26,108,167,.34);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+    transition:opacity .22s ease;
+    pointer-events:none;
+  }
+  .pyr-slot-k{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--blue-700);
+  }
+  .mat-top.is-moved .pyr-slot{opacity:.35}
+
+  /* El cubo: seis caras con transform y transform-style preserve-3d,
+     giro continuo y lento en bucle alrededor de DOS ejes a la vez, el
+     vertical y el horizontal: una vuelta completa en cada eje dentro
+     del mismo bucle de 18 s. Es absoluto dentro de su zona de
+     pruebas: su sistema de coordenadas es la zona, no la ventana.
+     La animacion solo mueve transform, nunca un filtro. --cs es el
+     lado de la cara y de el cuelga toda la geometria del cubo. */
+  .fcube{
+    --cs:132px;
+    position:absolute;
+    left:0;
+    top:0;
+    z-index:2;
+    width:calc(var(--cs) + 44px);
+    height:calc(var(--cs) + 64px);
+    perspective:820px;
+    pointer-events:auto;
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+    will-change:transform;
+    transform:translate3d(0,0,0);
+  }
+  .fcube.is-dragging{cursor:grabbing}
+  /* La vuelta a casa es lo unico que se anima con transicion. */
+  .fcube.is-snap{transition:transform .34s cubic-bezier(.22,.9,.24,1)}
+  .fcube:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+
+  /* Aro de enfasis: la invitacion a tomarlo, se detiene al primer toque. */
+  .fcube-ring{
+    position:absolute;
+    left:50%;
+    bottom:26px;
+    width:calc(var(--cs) + 26px);
+    height:20px;
+    margin-left:calc((var(--cs) + 26px) / -2);
+    border-radius:50%;
+    border:2px solid rgba(26,108,167,.5);
+    animation:cube-ring 2.8s ease-out infinite;
+  }
+  /* Apoyo en el plano: la sombra que lo asienta. */
+  .fcube-shadow{
+    position:absolute;
+    left:50%;
+    bottom:30px;
+    width:var(--cs);
+    height:20px;
+    margin-left:calc(var(--cs) / -2);
+    border-radius:50%;
+    background:radial-gradient(50% 50% at 50% 50%, rgba(11,46,71,.44), rgba(11,46,71,0) 74%);
+  }
+  /* La escena: aqui vive el espacio 3D y aqui gira el cubo. */
+  .fcube-scene{
+    position:absolute;
+    left:50%;
+    top:16px;
+    width:var(--cs);
+    height:var(--cs);
+    margin-left:calc(var(--cs) / -2);
+    transform-style:preserve-3d;
+    /* Postura fija: es la que se ve cuando el giro esta detenido, y ya
+       lleva inclinados los dos ejes, asi que el cubo nunca se lee de
+       frente. */
+    transform:rotateX(-20deg) rotateY(-34deg);
+    animation:none;
+    will-change:transform;
+  }
+  .fcube-face{
+    position:absolute;
+    inset:0;
+    display:block;
+    border:1px solid rgba(255,255,255,.5);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+  }
+  /* Las seis caras, cada una al lado del centro: medio cubo de
+     separacion. El tinte sube de azul profundo abajo a claro
+     arriba, todo dentro de la paleta: el volumen se lee sin una
+     sola imagen y sin filtros. */
+  .cf-front{ transform:translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#1A6CA7 0%,#124C76 100%); }
+  .cf-right{ transform:rotateY(90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#7FB0D4 0%,#1A6CA7 100%); }
+  .cf-left{ transform:rotateY(-90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#0B2E47 0%,#124C76 100%); }
+  .cf-back{ transform:rotateY(180deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#124C76 0%,#0B2E47 100%); }
+  .cf-top{ transform:rotateX(90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#EAF2F8 0%,#7FB0D4 100%); }
+  .cf-bottom{ transform:rotateX(-90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#124C76 0%,#0B2E47 100%); }
+  /* Etiqueta ARRASTRA, pegada al cubo y dentro de su area de agarre. */
+  .fcube-tag-wrap{
+    position:absolute;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    filter:drop-shadow(0 6px 12px rgba(11,46,71,.3));
+    pointer-events:none;
+  }
+  .fcube-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:6px 20px 6px 22px;
+    white-space:nowrap;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#FFFFFF;
+    background:linear-gradient(145deg,#1A6CA7 0%,#124C76 54%,#0B2E47 100%);
+    /* Cinta fuera de esquina: muesca a la izquierda y punta a la derecha. */
+    clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+  }
+  .fcube-grip{
+    display:block;
+    width:10px;
+    height:11px;
+    flex:0 0 10px;
+    background-image:radial-gradient(circle, #fff 0 1.2px, transparent 1.4px);
+    background-size:5px 6px;
+    background-repeat:repeat;
+  }
+  /* El pulso de invitacion se apaga en cuanto el cubo se toma. El
+     giro sigue: el giro es el objeto, no un aviso. */
+  .fcube.is-touched .fcube-ring{animation:none;opacity:0}
+
+  /* Giro en los dos ejes a la vez: 18 s por vuelta completa en cada uno.
+     Los dos ejes recorren 360 grados dentro del mismo bucle, de modo que
+     el reinicio cae justo donde empezo (X de -20 a 340 y Y de 0 a 360) y
+     no se ve ningun salto. Solo se anima transform: ni filtros ni sombras. */
+  @keyframes cube-spin{
+    from{ transform:rotateX(-20deg) rotateY(0deg); }
+    to{ transform:rotateX(340deg) rotateY(360deg); }
+  }
+  @keyframes cube-ring{
+    0%{ transform:scale(.84); opacity:.8; }
+    72%,100%{ transform:scale(1.12); opacity:0; }
+  }
+
+  /* =========================================================
+     18. PIE (MATERIAL D: VIDRIO AZUL PROFUNDO)
+     ========================================================= */
+  .site-footer{
+    position:relative;
+    overflow:hidden;
+    margin-top:0;
+    padding:64px 0 40px;
+    color:#F2F4F7;
+    background:
+      radial-gradient(600px 300px at 88% 12%, rgba(127,176,212,.28), rgba(127,176,212,0) 72%),
+      linear-gradient(135deg, #124C76 0%, #0B2E47 62%, #0B2E47 100%);
+  }
+  .site-footer::before{
+    content:"";
+    position:absolute;
+    top:-120px;right:-120px;
+    width:360px;height:360px;
+    background:linear-gradient(135deg, rgba(255,255,255,.1), rgba(255,255,255,0));
+    clip-path:polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    transform:rotate(45deg);
+    pointer-events:none;
+  }
+  .footer-grid{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+    gap:40px;
+    align-items:start;
+  }
+  .footer-title{
+    font-size:clamp(22px,2.6vw,32px);
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin:24px 0 0;
+    color:#FFFFFF;
+  }
+  .footer-note{margin:12px 0 0;font-size:14px;color:#CFE2F0;max-width:46ch}
+  .footer-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;font-size:13px;color:#CFE2F0}
+  .footer-list li{position:relative;padding-left:18px}
+  .footer-list li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;background:var(--blue-300)}
+  .footer-rule{height:1px;background:rgba(207,226,240,.28);margin:36px 0 20px}
+  .footer-bottom{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px 24px;
+    justify-content:space-between;
+    font-size:12px;
+    letter-spacing:.06em;
+    color:#7FB0D4;
+  }
+
+  /* =========================================================
+     19. ADAPTACION
+     ========================================================= */
+  @media (max-width:1000px){
+    :root{--logo-respect-w:400px}
+    .palette{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .minsizes{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .mat-head,.mat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .misuse{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .shapes{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .pillars{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media (max-width:900px){
+    /* Guarda de movil: por debajo de 900 px manda el dedo. El espacio de
+       salida del objeto se hace mas alto para que el cubo no nazca encima
+       de los controles, y el JavaScript lo aparta de ellos al soltarlo
+       (misma guarda de 900 px que la referencia). */
+    .pyr-slot{min-height:264px}
+    .fcube{--cs:112px}
+  }
+  @media (max-width:860px){
+    :root{--logo-respect-w:360px}
+    .section-head{grid-template-columns:minmax(0,1fr);align-items:start;gap:16px}
+    /* Las dos columnas de materiales se apilan: sin scroll horizontal. */
+    .mat-top{grid-template-columns:minmax(0,1fr)}
+    .variants{grid-template-columns:minmax(0,1fr)}
+    .resources{grid-template-columns:minmax(0,1fr)}
+    .footer-grid{grid-template-columns:minmax(0,1fr)}
+    .site-header{flex-wrap:wrap;gap:12px 20px;padding:12px 20px}
+    .site-nav{margin-left:0;gap:16px}
+    .wrap{padding:0 20px}
+    .section{padding:64px 0}
+    .respect{grid-template-columns:minmax(0,1fr);gap:24px;padding:20px}
+    .grounds{grid-template-columns:minmax(0,1fr)}
+    .index-row{grid-template-columns:44px 16px minmax(0,1fr) 108px;gap:14px}
+    .index-row--sub{padding-left:44px}
+  }
+  @media (max-width:700px){
+    :root{--logo-respect-w:320px}
+    .pillars{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:560px){
+    .palette{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .mat-head,.mat-grid{grid-template-columns:repeat(1,minmax(0,1fr))}
+    /* A una columna la tarjeta ocupa casi todo el ancho: el recorte horizontal
+       del propio panel deja salir las difusiones grandes (B2, A3) sin abrir
+       barra horizontal, aunque el navegador no entienda overflow-x:clip. */
+    .mat-grid{overflow-x:clip}
+    .resource{grid-template-columns:minmax(0,1fr)}
+    .sp-row{grid-template-columns:48px 64px minmax(0,1fr)}
+    .logo--mono-dark,.logo--mono-light{width:200px}
+    .misuse{grid-template-columns:minmax(0,1fr)}
+    .index-row{grid-template-columns:32px 14px minmax(0,1fr);row-gap:8px}
+    .index-state{grid-column:2 / -1;justify-self:start;text-align:left}
+    .index-row--sub{padding-left:14px}
+    .pillars{grid-template-columns:minmax(0,1fr)}
+    .bloque-head{gap:8px 12px;padding:24px 0 20px}
+    .pyr-copy{padding:18px}
+    .pyr-dock{padding:12px}
+    .pyr-slot{min-height:180px}
+    .fcube{--cs:104px}
+    .fcube-tag{font-size:8px;letter-spacing:.08em;padding:5px 16px 5px 18px}
+    .pyr-btn{padding:10px 14px;font-size:10px}
+  }
+  @media (max-width:430px){
+    :root{--logo-respect-w:230px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{transition:none !important;animation:none !important}
+    /* El giro del cubo se detiene; el cubo sigue ahi, en su postura
+       fija, y se sigue pudiendo arrastrar con puntero y con teclado. */
+    .fcube-scene,.fcube-ring{animation:none !important}
+  }
+  /* Mismo ajuste que la referencia: el desenfoque de fondo es lo mas caro de
+     pintar, asi que en pantallas chicas se recorta en las cuatro variantes
+     mas densas. Sin esto, los materiales no son identicos a preview. */
+  @media (max-width:700px){
+    .c4 .glass, .c5 .glass{ --b:14px; }
+    .d4 .glass, .d5 .glass{ --b:14px; }
+  }
+  /* Indice del sistema: las filas con pagina hecha se pueden pulsar, las que
+     todavia no existen se quedan como texto, para que el estado se lea igual
+     que en el archivo de Penpot. */
+  a.index-title{ text-decoration:none; color:inherit; border-bottom:1px solid transparent; }
+  a.index-title:hover, a.index-title:focus-visible{ color:var(--blue); border-bottom-color:var(--blue); }
+  a.index-title:focus-visible{ outline:2px solid var(--blue); outline-offset:3px; }
+  .index-title--pending{ color:var(--ink-3); }
+  /* Titulares de bloque: con el tracking alto, el titular largo no cabia en pantallas estrechas. */
+  @media (max-width:560px){ .bloque-title{ letter-spacing:.08em; font-size:20px; } }
+
+  /* ==========================================================
+     PIEZA ARRASTRABLE DE LA GALERIA: EL CHEVRON DE LA MARCA
+     El poligono oficial del logotipo extruido, dentro del mismo
+     objeto arrastrable que antes era el cubo: mismo campo, mismo
+     boton de recolocar, mismo espacio de salida.
+     ========================================================== */
+  .pieza{
+    position:relative;
+    width:var(--cw);
+    height:var(--ch);
+    perspective:900px;
+    perspective-origin:50% 50%;
+  }
+  /* Apoyo en el plano: la misma elipse de sombra que usa el cubo, en azul
+     oscuro de la paleta. El nucleo es el azul profundo #0B2E47 (11,46,71) y la
+     caida se hace en azul medio #124C76 y en azul principal #1A6CA7 antes de
+     desaparecer, no en gris transparente: al bajar el alfa sobre un fondo claro
+     el tono se lavaba y la sombra se leia gris neutra. La elipse, su posicion y
+     su difusion son las mismas de antes. */
+  .pieza-sombra{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:-42px;
+    height:24px;
+    border-radius:50%;
+    background:radial-gradient(50% 50% at 50% 50%, rgba(18,76,118,.42) 0%, rgba(26,108,167,.26) 44%, rgba(26,108,167,0) 78%);
+  }
+  .pieza-giro{
+    position:absolute;
+    inset:0;
+    transform-style:preserve-3d;
+    /* Postura inicial identica al primer fotograma del ciclo, para que al
+       entrar el giro no haya salto de postura. */
+    transform:rotateX(-18deg) rotateY(0deg);
+    will-change:transform;
+  }
+  /* El giro no arranca hasta que el script ha montado la geometria entera: el
+     primer fotograma ya es el volumen completo. */
+  .pieza-giro.is-lista{
+    animation:chevron-spin 16s linear infinite;
+  }
+  .chev{
+    position:absolute;
+    inset:0;
+    transform-style:preserve-3d;
+    /* Mientras no esten las dos caras y las seis paredes el volumen no se
+       pinta. Se usa visibility y no opacity: opacity por debajo de 1 aplana el
+       contexto 3D y las paredes dejarian de colocarse en el espacio. */
+    visibility:hidden;
+  }
+  .chev.is-lista{ visibility:visible; }
+  /* Toda pieza de la figura es absoluta y anclada arriba a la
+     izquierda: las paredes se colocan desde su arista. */
+  .chev > i{
+    position:absolute;
+    left:0;
+    top:0;
+    display:block;
+  }
+  /* Cara plana: el fondo del elemento hace de canto de luz del contorno y el
+     tinte va encima, reducido, de modo que queda un filete claro de borde en
+     todo el perimetro del poligono. Asi la silueta se lee desde cualquier
+     angulo, incluso cuando la cara que mira al espectador es la de contraluz. */
+  .chev .cara{
+    width:100%;
+    height:100%;
+    background:linear-gradient(152deg, rgba(234,242,248,.95) 0%, rgba(207,226,240,.86) 46%, rgba(127,176,212,.78) 100%);
+  }
+  .chev .tinte{
+    position:absolute;
+    inset:0;
+    display:block;
+    transform:scale(.972);
+    transform-origin:50% 50%;
+  }
+  /* Las paredes se colocan desde su arista. El filete de luz va en los dos
+     cantos de la extrusion, que son justo los que coinciden con las caras
+     planas: son las aristas de la silueta y se leen en todo el giro. */
+  .chev .pared{
+    transform-origin:0 0;
+    border-top:1px solid rgba(234,242,248,.66);
+    border-bottom:1px solid rgba(234,242,248,.52);
+  }
+  /* Filete de luz de la cara plana: hace de borde interior blanco sin
+     romper el recorte del poligono. */
+  .chev .brillo{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(158deg, rgba(255,255,255,.46) 0%, rgba(255,255,255,.1) 26%, rgba(255,255,255,0) 54%, rgba(11,46,71,.22) 100%);
+  }
+  .chev .brillo.suave{
+    background:linear-gradient(158deg, rgba(255,255,255,.30) 0%, rgba(255,255,255,.07) 30%, rgba(255,255,255,0) 62%, rgba(11,46,71,.16) 100%);
+  }
+
+  /* ------------------------------------------------------------
+     MODELO DE LUZ DEL VOLUMEN
+     Ocho tintas, todas de la paleta. Dos reglas mandan:
+     1. Ninguna cara baja de #124C76 salvo en el extremo de un degradado:
+        antes la cara trasera y las paredes izquierda y base llegaban a
+        #0B2E47 y, al quedar a contraluz, el volumen entero se leia negro.
+     2. Cada direccion visible tiene dos tintas, no una. La pared no se
+        elige solo por el eje de su normal, tambien por el sentido de su
+        arista, de modo que las dos paredes que miran al mismo lado nunca
+        salen del mismo color y el canto se sigue leyendo.
+     ------------------------------------------------------------ */
+  .ch-front{ background:linear-gradient(150deg,#7FB0D4 0%,#1A6CA7 46%,#124C76 100%); }
+  .ch-back{ background:linear-gradient(150deg,#1A6CA7 0%,#124C76 100%); }
+  .ch-t{ background:linear-gradient(150deg,#EAF2F8 0%,#CFE2F0 44%,#7FB0D4 100%); }
+  .ch-b{ background:linear-gradient(150deg,#0B2E47 0%,#124C76 54%,#1A6CA7 100%); }
+  .ch-r{ background:linear-gradient(150deg,#7FB0D4 0%,#1A6CA7 100%); }
+  .ch-r2{ background:linear-gradient(150deg,#CFE2F0 0%,#7FB0D4 56%,#1A6CA7 100%); }
+  .ch-l{ background:linear-gradient(150deg,#124C76 0%,#1A6CA7 72%,#7FB0D4 100%); }
+  .ch-l2{ background:linear-gradient(150deg,#1A6CA7 0%,#124C76 70%,#0B2E47 100%); }
+
+  /* El mismo tipo de giro que el cubo: 16 s, lineal, en bucle. Aqui la
+     vuelta de Y es completa y X oscila, para que la pieza muestre los
+     dos ejes. */
+  @keyframes chevron-spin{
+    0%{ transform:rotateX(-18deg) rotateY(0deg); }
+    25%{ transform:rotateX(0deg) rotateY(90deg); }
+    50%{ transform:rotateX(18deg) rotateY(180deg); }
+    75%{ transform:rotateX(0deg) rotateY(270deg); }
+    100%{ transform:rotateX(-18deg) rotateY(360deg); }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Ir al contenido</a>
+
+<!-- ==========================================================
+     RECURSOS: la geometria del logotipo oficial se incrusta una
+     sola vez y se reutiliza con tres juegos de tintas.
+     ========================================================== -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="crs-logo-color" viewBox="0 0 552.23 141.34"><g id="Vectores"> <g> <g> <g> <path fill="#2E2D2C" d="m36.21,67.9c-10,0-18.11-8.11-18.11-18.11s8.11-18.11,18.11-18.11c5,0,9.53,2.03,12.8,5.3l12.8-12.8c-6.55-6.55-15.61-10.61-25.61-10.61C16.21,13.58,0,29.79,0,49.79s16.21,36.21,36.21,36.21c10,0,19.05-4.05,25.61-10.61l-12.8-12.8c-3.28,3.28-7.8,5.3-12.8,5.3Z"/> <polygon fill="#2E2D2C" points="181.06 58.84 181.06 86 126.74 86 135.79 67.9 162.95 67.9 135.79 40.74 135.79 13.58 190.11 13.58 181.06 31.69 153.9 31.82 181.06 58.84"/> <polygon fill="#2E2D2C" points="67.9 13.58 67.9 86 86 67.9 86 49.79 86 31.69 104.11 31.69 86 49.79 122.21 86 122.21 58.84 113.16 49.79 122.21 40.74 122.21 31.69 122.21 13.58 67.9 13.58"/> </g> <g> <polygon fill="#1C6CA9" points="353.06 58.84 353.06 86 298.75 86 307.8 67.9 334.96 67.9 307.8 40.74 307.8 13.58 362.12 13.58 353.06 31.69 325.9 31.82 353.06 58.84"/> <polygon fill="#1C6CA9" points="208.22 13.58 235.1 49.79 208.22 86 235.38 86 262.53 49.79 235.38 13.58 208.22 13.58"/> <polygon fill="#1C6CA9" points="271.59 13.58 271.59 76.95 282.9 95.06 282.9 95.05 282.9 95.06 294.22 76.95 294.22 13.58 271.59 13.58"/> <polygon fill="#1C6CA9" points="380.22 67.9 380.22 58.84 398.33 58.84 398.33 40.74 380.22 40.74 380.22 31.69 398.33 31.69 416.43 13.58 362.12 13.58 362.12 86 416.43 86 398.33 67.9 380.22 67.9"/> <polygon fill="#1C6CA9" points="416.43 95.06 416.43 13.58 434.54 13.58 452.64 49.79 452.64 22.63 470.75 4.53 470.75 86 452.64 86 434.54 49.79 434.54 76.95 416.43 95.06"/> <polygon fill="#1C6CA9" points="425.49 9.05 461.7 9.05 452.64 0 416.43 0 425.49 9.05"/> <path fill="#1C6CA9" d="m516.01,13.58c-20,0-36.21,16.21-36.21,36.21s16.21,36.21,36.21,36.21,36.21-16.21,36.21-36.21-16.21-36.21-36.21-36.21Zm0,54.32c-10,0-18.11-8.11-18.11-18.11s8.11-18.11,18.11-18.11,18.11,8.11,18.11,18.11-8.11,18.11-18.11,18.11Z"/> </g> </g> <path fill="#2E2D2C" d="m0,104.11h552.23v3.49H0v-3.49Z"/> <g> <path fill="#2E2D2C" d="m0,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24H0Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04H3.06v8.31Z"/> <path fill="#2E2D2C" d="m21.55,135.34v-13.13h3.06v13.13h-3.06Z"/> <path fill="#2E2D2C" d="m31.31,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m51.7,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m81.91,124.56h-8.23v8.31h8.23v-2.82l3.05.63v1.55c0,1.2-.23,2.02-.68,2.45s-1.31.65-2.58.65h-7.84c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h7.84c1.27,0,2.13.22,2.58.66.45.44.68,1.25.68,2.45v1.24l-3.05.48v-2.48Z"/> <path fill="#2E2D2C" d="m97.38,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#2E2D2C" d="m106.89,125.32c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h9.66c1.27,0,2.14.22,2.58.66.45.44.67,1.25.67,2.45v6.92c0,1.2-.22,2.02-.67,2.45-.45.43-1.31.65-2.58.65h-9.66c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92Zm3.05,7.55h10.07v-8.31h-10.07v8.31Z"/> <path fill="#2E2D2C" d="m129.49,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m159.73,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24h-7.66Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04h-5.41v8.31Z"/> <path fill="#2E2D2C" d="m181.28,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m207.82,135.34l7.43-13.13h2.94l7.53,13.13h-3.43l-1.58-2.87h-8.32l-1.53,2.87h-3.04Zm5.87-5.24h5.75l-2.83-5.34-2.92,5.34Z"/> <path fill="#2E2D2C" d="m229.93,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m255.99,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#2E2D2C" d="m265.77,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m298.77,115.91v25.43h-1.86v-25.43h1.86Z"/> <path fill="#2E2D2C" d="m317.39,135.34v-13.13h3.06v10.66h9.85v2.47h-12.9Z"/> <path fill="#2E2D2C" d="m334.46,120.82l2.53-4.3h2.76l-3.66,4.3h-1.63Zm.3,14.52v-13.13h3.06v13.13h-3.06Z"/> <path fill="#2E2D2C" d="m344.52,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24h-7.66Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04h-5.41v8.31Z"/> <path fill="#2E2D2C" d="m366.07,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m385.27,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m426.52,124.56h-8.23v8.31h8.23v-2.82l3.05.63v1.55c0,1.2-.23,2.02-.68,2.45s-1.31.65-2.58.65h-7.84c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h7.84c1.27,0,2.13.22,2.58.66.45.44.68,1.25.68,2.45v1.24l-3.05.48v-2.48Z"/> <path fill="#2E2D2C" d="m435.87,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m456.27,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m472.96,135.34l7.43-13.13h2.94l7.53,13.13h-3.43l-1.58-2.87h-8.32l-1.53,2.87h-3.04Zm5.87-5.24h5.75l-2.83-5.34-2.92,5.34Z"/> <path fill="#2E2D2C" d="m499.46,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#2E2D2C" d="m509.25,135.34v-13.13h3.06v13.13h-3.06Z"/> <path fill="#2E2D2C" d="m523.44,135.34l-7.59-13.13h3.49l5.31,9.49,5.07-9.49h3.04l-7.22,13.13h-2.11Z"/> <path fill="#2E2D2C" d="m536.06,125.32c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h9.66c1.27,0,2.14.22,2.58.66.45.44.67,1.25.67,2.45v6.92c0,1.2-.22,2.02-.67,2.45-.45.43-1.31.65-2.58.65h-9.66c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92Zm3.05,7.55h10.07v-8.31h-10.07v8.31Z"/> </g> </g> </g></symbol>
+  <symbol id="crs-logo-negro" viewBox="0 0 552.23 141.34"><g id="Vectores"> <g> <g> <g> <path fill="#2E2D2C" d="m36.21,67.9c-10,0-18.11-8.11-18.11-18.11s8.11-18.11,18.11-18.11c5,0,9.53,2.03,12.8,5.3l12.8-12.8c-6.55-6.55-15.61-10.61-25.61-10.61C16.21,13.58,0,29.79,0,49.79s16.21,36.21,36.21,36.21c10,0,19.05-4.05,25.61-10.61l-12.8-12.8c-3.28,3.28-7.8,5.3-12.8,5.3Z"/> <polygon fill="#2E2D2C" points="181.06 58.84 181.06 86 126.74 86 135.79 67.9 162.95 67.9 135.79 40.74 135.79 13.58 190.11 13.58 181.06 31.69 153.9 31.82 181.06 58.84"/> <polygon fill="#2E2D2C" points="67.9 13.58 67.9 86 86 67.9 86 49.79 86 31.69 104.11 31.69 86 49.79 122.21 86 122.21 58.84 113.16 49.79 122.21 40.74 122.21 31.69 122.21 13.58 67.9 13.58"/> </g> <g> <polygon fill="#2E2D2C" points="353.06 58.84 353.06 86 298.75 86 307.8 67.9 334.96 67.9 307.8 40.74 307.8 13.58 362.12 13.58 353.06 31.69 325.9 31.82 353.06 58.84"/> <polygon fill="#2E2D2C" points="208.22 13.58 235.1 49.79 208.22 86 235.38 86 262.53 49.79 235.38 13.58 208.22 13.58"/> <polygon fill="#2E2D2C" points="271.59 13.58 271.59 76.95 282.9 95.06 282.9 95.05 282.9 95.06 294.22 76.95 294.22 13.58 271.59 13.58"/> <polygon fill="#2E2D2C" points="380.22 67.9 380.22 58.84 398.33 58.84 398.33 40.74 380.22 40.74 380.22 31.69 398.33 31.69 416.43 13.58 362.12 13.58 362.12 86 416.43 86 398.33 67.9 380.22 67.9"/> <polygon fill="#2E2D2C" points="416.43 95.06 416.43 13.58 434.54 13.58 452.64 49.79 452.64 22.63 470.75 4.53 470.75 86 452.64 86 434.54 49.79 434.54 76.95 416.43 95.06"/> <polygon fill="#2E2D2C" points="425.49 9.05 461.7 9.05 452.64 0 416.43 0 425.49 9.05"/> <path fill="#2E2D2C" d="m516.01,13.58c-20,0-36.21,16.21-36.21,36.21s16.21,36.21,36.21,36.21,36.21-16.21,36.21-36.21-16.21-36.21-36.21-36.21Zm0,54.32c-10,0-18.11-8.11-18.11-18.11s8.11-18.11,18.11-18.11,18.11,8.11,18.11,18.11-8.11,18.11-18.11,18.11Z"/> </g> </g> <path fill="#2E2D2C" d="m0,104.11h552.23v3.49H0v-3.49Z"/> <g> <path fill="#2E2D2C" d="m0,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24H0Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04H3.06v8.31Z"/> <path fill="#2E2D2C" d="m21.55,135.34v-13.13h3.06v13.13h-3.06Z"/> <path fill="#2E2D2C" d="m31.31,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m51.7,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m81.91,124.56h-8.23v8.31h8.23v-2.82l3.05.63v1.55c0,1.2-.23,2.02-.68,2.45s-1.31.65-2.58.65h-7.84c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h7.84c1.27,0,2.13.22,2.58.66.45.44.68,1.25.68,2.45v1.24l-3.05.48v-2.48Z"/> <path fill="#2E2D2C" d="m97.38,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#2E2D2C" d="m106.89,125.32c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h9.66c1.27,0,2.14.22,2.58.66.45.44.67,1.25.67,2.45v6.92c0,1.2-.22,2.02-.67,2.45-.45.43-1.31.65-2.58.65h-9.66c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92Zm3.05,7.55h10.07v-8.31h-10.07v8.31Z"/> <path fill="#2E2D2C" d="m129.49,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m159.73,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24h-7.66Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04h-5.41v8.31Z"/> <path fill="#2E2D2C" d="m181.28,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m207.82,135.34l7.43-13.13h2.94l7.53,13.13h-3.43l-1.58-2.87h-8.32l-1.53,2.87h-3.04Zm5.87-5.24h5.75l-2.83-5.34-2.92,5.34Z"/> <path fill="#2E2D2C" d="m229.93,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m255.99,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#2E2D2C" d="m265.77,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m298.77,115.91v25.43h-1.86v-25.43h1.86Z"/> <path fill="#2E2D2C" d="m317.39,135.34v-13.13h3.06v10.66h9.85v2.47h-12.9Z"/> <path fill="#2E2D2C" d="m334.46,120.82l2.53-4.3h2.76l-3.66,4.3h-1.63Zm.3,14.52v-13.13h3.06v13.13h-3.06Z"/> <path fill="#2E2D2C" d="m344.52,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24h-7.66Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04h-5.41v8.31Z"/> <path fill="#2E2D2C" d="m366.07,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m385.27,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m426.52,124.56h-8.23v8.31h8.23v-2.82l3.05.63v1.55c0,1.2-.23,2.02-.68,2.45s-1.31.65-2.58.65h-7.84c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h7.84c1.27,0,2.13.22,2.58.66.45.44.68,1.25.68,2.45v1.24l-3.05.48v-2.48Z"/> <path fill="#2E2D2C" d="m435.87,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#2E2D2C" d="m456.27,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#2E2D2C" d="m472.96,135.34l7.43-13.13h2.94l7.53,13.13h-3.43l-1.58-2.87h-8.32l-1.53,2.87h-3.04Zm5.87-5.24h5.75l-2.83-5.34-2.92,5.34Z"/> <path fill="#2E2D2C" d="m499.46,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#2E2D2C" d="m509.25,135.34v-13.13h3.06v13.13h-3.06Z"/> <path fill="#2E2D2C" d="m523.44,135.34l-7.59-13.13h3.49l5.31,9.49,5.07-9.49h3.04l-7.22,13.13h-2.11Z"/> <path fill="#2E2D2C" d="m536.06,125.32c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h9.66c1.27,0,2.14.22,2.58.66.45.44.67,1.25.67,2.45v6.92c0,1.2-.22,2.02-.67,2.45-.45.43-1.31.65-2.58.65h-9.66c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92Zm3.05,7.55h10.07v-8.31h-10.07v8.31Z"/> </g> </g> </g></symbol>
+  <symbol id="crs-logo-blanco" viewBox="0 0 552.23 141.34"><g id="Vectores"> <g> <g> <g> <path fill="#FFFFFF" d="m36.21,67.9c-10,0-18.11-8.11-18.11-18.11s8.11-18.11,18.11-18.11c5,0,9.53,2.03,12.8,5.3l12.8-12.8c-6.55-6.55-15.61-10.61-25.61-10.61C16.21,13.58,0,29.79,0,49.79s16.21,36.21,36.21,36.21c10,0,19.05-4.05,25.61-10.61l-12.8-12.8c-3.28,3.28-7.8,5.3-12.8,5.3Z"/> <polygon fill="#FFFFFF" points="181.06 58.84 181.06 86 126.74 86 135.79 67.9 162.95 67.9 135.79 40.74 135.79 13.58 190.11 13.58 181.06 31.69 153.9 31.82 181.06 58.84"/> <polygon fill="#FFFFFF" points="67.9 13.58 67.9 86 86 67.9 86 49.79 86 31.69 104.11 31.69 86 49.79 122.21 86 122.21 58.84 113.16 49.79 122.21 40.74 122.21 31.69 122.21 13.58 67.9 13.58"/> </g> <g> <polygon fill="#FFFFFF" points="353.06 58.84 353.06 86 298.75 86 307.8 67.9 334.96 67.9 307.8 40.74 307.8 13.58 362.12 13.58 353.06 31.69 325.9 31.82 353.06 58.84"/> <polygon fill="#FFFFFF" points="208.22 13.58 235.1 49.79 208.22 86 235.38 86 262.53 49.79 235.38 13.58 208.22 13.58"/> <polygon fill="#FFFFFF" points="271.59 13.58 271.59 76.95 282.9 95.06 282.9 95.05 282.9 95.06 294.22 76.95 294.22 13.58 271.59 13.58"/> <polygon fill="#FFFFFF" points="380.22 67.9 380.22 58.84 398.33 58.84 398.33 40.74 380.22 40.74 380.22 31.69 398.33 31.69 416.43 13.58 362.12 13.58 362.12 86 416.43 86 398.33 67.9 380.22 67.9"/> <polygon fill="#FFFFFF" points="416.43 95.06 416.43 13.58 434.54 13.58 452.64 49.79 452.64 22.63 470.75 4.53 470.75 86 452.64 86 434.54 49.79 434.54 76.95 416.43 95.06"/> <polygon fill="#FFFFFF" points="425.49 9.05 461.7 9.05 452.64 0 416.43 0 425.49 9.05"/> <path fill="#FFFFFF" d="m516.01,13.58c-20,0-36.21,16.21-36.21,36.21s16.21,36.21,36.21,36.21,36.21-16.21,36.21-36.21-16.21-36.21-36.21-36.21Zm0,54.32c-10,0-18.11-8.11-18.11-18.11s8.11-18.11,18.11-18.11,18.11,8.11,18.11,18.11-8.11,18.11-18.11,18.11Z"/> </g> </g> <path fill="#FFFFFF" d="m0,104.11h552.23v3.49H0v-3.49Z"/> <g> <path fill="#FFFFFF" d="m0,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24H0Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04H3.06v8.31Z"/> <path fill="#FFFFFF" d="m21.55,135.34v-13.13h3.06v13.13h-3.06Z"/> <path fill="#FFFFFF" d="m31.31,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#FFFFFF" d="m51.7,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#FFFFFF" d="m81.91,124.56h-8.23v8.31h8.23v-2.82l3.05.63v1.55c0,1.2-.23,2.02-.68,2.45s-1.31.65-2.58.65h-7.84c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h7.84c1.27,0,2.13.22,2.58.66.45.44.68,1.25.68,2.45v1.24l-3.05.48v-2.48Z"/> <path fill="#FFFFFF" d="m97.38,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#FFFFFF" d="m106.89,125.32c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h9.66c1.27,0,2.14.22,2.58.66.45.44.67,1.25.67,2.45v6.92c0,1.2-.22,2.02-.67,2.45-.45.43-1.31.65-2.58.65h-9.66c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92Zm3.05,7.55h10.07v-8.31h-10.07v8.31Z"/> <path fill="#FFFFFF" d="m129.49,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#FFFFFF" d="m159.73,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24h-7.66Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04h-5.41v8.31Z"/> <path fill="#FFFFFF" d="m181.28,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#FFFFFF" d="m207.82,135.34l7.43-13.13h2.94l7.53,13.13h-3.43l-1.58-2.87h-8.32l-1.53,2.87h-3.04Zm5.87-5.24h5.75l-2.83-5.34-2.92,5.34Z"/> <path fill="#FFFFFF" d="m229.93,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#FFFFFF" d="m255.99,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#FFFFFF" d="m265.77,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#FFFFFF" d="m298.77,115.91v25.43h-1.86v-25.43h1.86Z"/> <path fill="#FFFFFF" d="m317.39,135.34v-13.13h3.06v10.66h9.85v2.47h-12.9Z"/> <path fill="#FFFFFF" d="m334.46,120.82l2.53-4.3h2.76l-3.66,4.3h-1.63Zm.3,14.52v-13.13h3.06v13.13h-3.06Z"/> <path fill="#FFFFFF" d="m344.52,135.34v-13.13h8.44c2.41,0,4.26.56,5.56,1.69,1.3,1.13,1.94,2.72,1.94,4.79,0,1.23-.25,2.33-.76,3.31-.5.98-1.22,1.75-2.14,2.32-.57.36-1.28.62-2.13.78s-1.94.24-3.26.24h-7.66Zm3.06-2.47h3.95c2.1,0,3.59-.33,4.47-.98.88-.65,1.32-1.73,1.32-3.24,0-1.34-.36-2.36-1.09-3.05-.73-.69-1.81-1.04-3.23-1.04h-5.41v8.31Z"/> <path fill="#FFFFFF" d="m366.07,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#FFFFFF" d="m385.27,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#FFFFFF" d="m426.52,124.56h-8.23v8.31h8.23v-2.82l3.05.63v1.55c0,1.2-.23,2.02-.68,2.45s-1.31.65-2.58.65h-7.84c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h7.84c1.27,0,2.13.22,2.58.66.45.44.68,1.25.68,2.45v1.24l-3.05.48v-2.48Z"/> <path fill="#FFFFFF" d="m435.87,135.34v-13.13h11.23c1.04,0,1.8.2,2.27.6s.7,1.05.7,1.94v3.08c0,.89-.23,1.53-.7,1.94s-1.22.61-2.27.61h-1.71l6.06,4.96h-4.38l-5.29-4.96h-2.89v4.96h-3.01Zm9.87-10.85h-6.87v3.65h6.87c.53,0,.89-.08,1.09-.23.19-.15.29-.42.29-.81v-1.58c0-.38-.1-.65-.29-.8-.19-.15-.56-.23-1.09-.23Z"/> <path fill="#FFFFFF" d="m456.27,135.34v-13.13h13.44v2.24h-10.38v2.93h6.06v2.24h-6.06v3.25h10.51v2.47h-13.56Z"/> <path fill="#FFFFFF" d="m472.96,135.34l7.43-13.13h2.94l7.53,13.13h-3.43l-1.58-2.87h-8.32l-1.53,2.87h-3.04Zm5.87-5.24h5.75l-2.83-5.34-2.92,5.34Z"/> <path fill="#FFFFFF" d="m499.46,124.56v10.78h-3.05v-10.78h-6.02v-2.35h15.13v2.35h-6.05Z"/> <path fill="#FFFFFF" d="m509.25,135.34v-13.13h3.06v13.13h-3.06Z"/> <path fill="#FFFFFF" d="m523.44,135.34l-7.59-13.13h3.49l5.31,9.49,5.07-9.49h3.04l-7.22,13.13h-2.11Z"/> <path fill="#FFFFFF" d="m536.06,125.32c0-1.19.22-2.01.67-2.45.45-.44,1.31-.66,2.58-.66h9.66c1.27,0,2.14.22,2.58.66.45.44.67,1.25.67,2.45v6.92c0,1.2-.22,2.02-.67,2.45-.45.43-1.31.65-2.58.65h-9.66c-1.27,0-2.14-.22-2.58-.65s-.67-1.25-.67-2.45v-6.92Zm3.05,7.55h10.07v-8.31h-10.07v8.31Z"/> </g> </g> </g></symbol>
+
+  <symbol id="crs-chevron" viewBox="0 0 54.31 72.42">
+    <polygon points="0 0 26.88 36.21 0 72.42 27.16 72.42 54.31 36.21 27.16 0"/>
+  </symbol>
+
+  <symbol id="crs-playhead" viewBox="0 0 22.63 81.48">
+    <polygon points="0 0 0 63.37 11.31 81.48 22.63 63.37 22.63 0"/>
+  </symbol>
+
+  <!-- Cinta con muesca en V y paralelogramo con corte diagonal, con las
+       coordenadas del archivo aprobado en Penpot. -->
+  <symbol id="crs-ribbon" viewBox="0 0 120 36">
+    <polygon points="0 0 120 0 104 18 120 36 0 36"/>
+  </symbol>
+
+  <symbol id="crs-skew" viewBox="0 0 120 36">
+    <polygon points="12 0 120 0 108 36 0 36"/>
+  </symbol>
+
+  <!-- Icono de columna de los cinco pilares: una sola pieza, la misma
+       para los cinco. Capitel, collar, fuste, collar y basa, todo con
+       esquinas rectas. La tinta la pone el CSS, en azul de marca. -->
+  <symbol id="crs-columna" viewBox="0 0 26 34">
+    <rect x="0" y="0" width="26" height="3.6"/>
+    <rect x="2.4" y="5.6" width="21.2" height="2.2"/>
+    <rect x="5.4" y="7.8" width="15.2" height="18.4"/>
+    <rect x="2.4" y="26.2" width="21.2" height="2.2"/>
+    <rect x="0" y="30.4" width="26" height="3.6"/>
+  </symbol>
+</svg>
+
+<header class="site-header">
+  <a class="brand" href="#portada" aria-label="CRS Diseño Arte Digital, ir a la portada">
+    <svg class="logo logo--color logo--header" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo CRS Diseño Arte Digital"><use href="#crs-logo-color"></use></svg>
+  </a>
+  <nav class="site-nav" aria-label="Navegación por bloques">
+    <a href="#portada">Portada</a>
+    <a href="#indice">Índice</a>
+    <a href="#materiales-y-tokens">Materiales</a>
+  </nav>
+</header>
+
+<main id="contenido">
+
+  <!-- ==========================================================
+       PORTADA
+       ========================================================== -->
+  <section class="bloque" id="portada">
+    <div class="hero">
+      <div class="wrap">
+        <div class="bloque-head">
+          <h2 class="bloque-title">Portada</h2>
+          <p class="bloque-note">
+            La portada. Abre la presentación y dice qué es este sistema y para qué existe.
+          </p>
+        </div>
+        <ul class="hero-meta">
+          <li>Sistema</li>
+          <li>Marca</li>
+          <li>Material C3</li>
+          <li>Código puro</li>
+        </ul>
+        <div class="hero-panel">
+          <p class="eyebrow">UI System / sistema de diseño</p>
+          <h1>UI System CRS</h1>
+          <p class="lead">
+            Esta página es la demostración en HTML y CSS del sistema de diseño de la marca. Replica en código
+            lo que ya se aprobó en Penpot, sin inventar diseño: el logotipo en sus tres variantes, el símbolo de
+            recorrido y la pieza playhead como recursos de interfaz, y los materiales aplicados por función y por medida.
+          </p>
+          <ul class="points">
+            <li>Un solo archivo con el CSS y el JavaScript dentro. Sin frameworks, sin dependencias externas, sin imágenes de textura.</li>
+            <li>Los 19 colores, las 8 tipografías y los 10 espacios se leen de <code>tokens.json</code>, la fuente única del sistema.</li>
+            <li>Los 20 materiales se construyen con CSS puro: relieve, neumorfismo y vidrio calculados con sombras, desenfoque y grano.</li>
+            <li>La página está ordenada en cinco bloques: portada, índice, propósito, marca y el resto del sistema.</li>
+          </ul>
+          <p class="source-note">
+            Fuente de tokens: <code>https://CRS-DISENO.github.io/crs-design-system-penpot/tokens.json</code>.
+            La página lo lee con <code>fetch</code> al cargar. Si la red o la ruta no responden, usa el respaldo
+            incrustado con los mismos valores y lo indica en la sección de tokens.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================
+       INDICE DEL SISTEMA
+       El indice de
+       secciones del sistema, los tokens, los materiales y su zona
+       de pruebas.
+       ========================================================== -->
+  <section class="bloque" id="seccion-indice">
+    
+    <!-- ---------- INDICE DEL SISTEMA ---------- -->
+    <section class="section" id="indice">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 / índice</p>
+            <h2>Índice del sistema</h2>
+          </div>
+          <p>
+            El índice de la presentación: las siete filas del sistema con su número, una frase que dice qué contiene
+            cada una y la columna de estado. Lo generado va primero; lo planificado se lee en gris porque todavía no
+            existe, no porque valga menos.
+          </p>
+        </div>
+
+        <div class="index-head">
+          <span>Contenido de la presentación</span>
+          <span class="index-count">07 secciones</span>
+        </div>
+
+        <ol class="index-list">
+          <li class="index-row">
+            <span class="index-num">00</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#proposito">Propósito y pilares</a>
+              <span class="index-desc">La frase que dice qué reúne el sistema y los cinco pilares que sostienen el trabajo, cada uno con su número, su nombre corto y su línea de detalle.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+          <li class="index-row">
+            <span class="index-num">01</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#marca">Marca</a>
+              <span class="index-desc">Logotipo en tres variantes, símbolo y playhead aislados con área de respeto, reglas de uso, usos incorrectos, fondos permitidos y formas como recursos.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+          <li class="index-row index-row--sub">
+            <span class="index-num">01.1</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#reglas">Reglas de uso</a>
+              <span class="index-desc">Las siete reglas que mantienen la firma: SVG oficial, color por fondo, sin recolorear.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+
+          <li class="index-row index-row--sub">
+            <span class="index-num">01.2</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#usos">Usos incorrectos</a>
+              <span class="index-desc">Lo que no se hace con el logotipo, señalado en rojo porque es una señal negativa.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+
+          <li class="index-row index-row--sub">
+            <span class="index-num">01.3</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#fondos">Fondos permitidos</a>
+              <span class="index-desc">Cada variante del logotipo sobre el fondo que le corresponde.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+
+          <li class="index-row index-row--sub">
+            <span class="index-num">01.4</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#formas">Formas del logo como recursos</a>
+              <span class="index-desc">Chevrón, playhead, cinta con muesca y paralelogramo, cada uno con su uso.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+          <li class="index-row">
+            <span class="index-num">02</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#tokens">Fundaciones</a>
+              <span class="index-desc">Color, tipografía, retícula, espacio y sombras.</span>
+            </span>
+            <span class="index-state index-state--on">En diseño</span>
+          </li>
+
+          <li class="index-row index-row--sub">
+            <span class="index-num">02.1</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <a class="index-title" href="#materiales">Materiales y zona de pruebas</a>
+              <span class="index-desc">Los veinte materiales en su rejilla, su asignación por función y la pieza 3D que los prueba.</span>
+            </span>
+            <span class="index-state index-state--on">Generada</span>
+          </li>
+          <li class="index-row">
+            <span class="index-num">03</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <span class="index-title index-title--pending">Componentes</span>
+              <span class="index-desc">Controles, navegación, feedback y datos.</span>
+            </span>
+            <span class="index-state index-state--plan">Planificada</span>
+          </li>
+          <li class="index-row">
+            <span class="index-num">04</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <span class="index-title index-title--pending">Plantillas</span>
+              <span class="index-desc">Landing, página de caso y páginas internas.</span>
+            </span>
+            <span class="index-state index-state--plan">Planificada</span>
+          </li>
+          <li class="index-row">
+            <span class="index-num">05</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <span class="index-title index-title--pending">Key Visual</span>
+              <span class="index-desc">Composición de portada y piezas de campaña.</span>
+            </span>
+            <span class="index-state index-state--plan">Planificada</span>
+          </li>
+          <li class="index-row">
+            <span class="index-num">06</span>
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>
+              <span class="index-title index-title--pending">Aplicaciones web</span>
+              <span class="index-desc">Interfaz del sitio, estados y adaptación móvil.</span>
+            </span>
+            <span class="index-state index-state--plan">Planificada</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </section>
+
+  <!-- ==========================================================
+       PROPOSITO Y PILARES, DESPUES LA MARCA
+       ========================================================== -->
+  <section class="bloque" id="seccion-marca">
+    
+    <!-- ---------- PROPOSITO Y CINCO PILARES (PAGINA 02) ---------- -->
+    <section class="section" id="proposito">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 / propósito</p>
+            <h2>Propósito y pilares</h2>
+          </div>
+          <p>
+            La página 02 del archivo dice en una frase qué reúne el sistema, explica en un bloque con filete qué
+            significa la marca y ordena en cinco pilares el trabajo que lo sostiene, cada uno con su número, su nombre
+            corto en mayúsculas y una línea de detalle.
+          </p>
+        </div>
+
+        <p class="purpose">
+          Reúne la marca, sus fundamentos y sus aplicaciones digitales en una presentación editable.
+        </p>
+
+        <div class="meaning">
+          <p class="meaning-head">Qué significa la marca</p>
+          <p class="meaning-text">
+            El símbolo es el cierre de etiqueta HTML, el gesto con el que se cierra una idea. La i es un playhead: marca
+            dónde está el documento en su propio recorrido. El logotipo usa las esquinas rectas y los cortes a 45 grados
+            del resto del sistema.
+          </p>
+        </div>
+
+        <p class="pillars-head">Cinco pilares profesionales</p>
+        <div class="pillars">
+          <article class="pillar">
+            <span class="pillar-top">
+              <svg class="pillar-icon" viewBox="0 0 26 34" aria-hidden="true"><use href="#crs-columna"></use></svg>
+              <span class="pillar-num">01</span>
+            </span>
+            <span class="pillar-name">Dirección de arte</span>
+            <span class="pillar-detail">Estrategia visual y criterio de marca.</span>
+          </article>
+          <article class="pillar">
+            <span class="pillar-top">
+              <svg class="pillar-icon" viewBox="0 0 26 34" aria-hidden="true"><use href="#crs-columna"></use></svg>
+              <span class="pillar-num">02</span>
+            </span>
+            <span class="pillar-name">Motion y narrativa</span>
+            <span class="pillar-detail">El tiempo como material de diseño.</span>
+          </article>
+          <article class="pillar">
+            <span class="pillar-top">
+              <svg class="pillar-icon" viewBox="0 0 26 34" aria-hidden="true"><use href="#crs-columna"></use></svg>
+              <span class="pillar-num">03</span>
+            </span>
+            <span class="pillar-name">IA y flujos</span>
+            <span class="pillar-detail">Automatizar lo repetible para ganar criterio.</span>
+          </article>
+          <article class="pillar">
+            <span class="pillar-top">
+              <svg class="pillar-icon" viewBox="0 0 26 34" aria-hidden="true"><use href="#crs-columna"></use></svg>
+              <span class="pillar-num">04</span>
+            </span>
+            <span class="pillar-name">Arquitectura web</span>
+            <span class="pillar-detail">Estructura, CMS y entornos digitales.</span>
+          </article>
+          <article class="pillar">
+            <span class="pillar-top">
+              <svg class="pillar-icon" viewBox="0 0 26 34" aria-hidden="true"><use href="#crs-columna"></use></svg>
+              <span class="pillar-num">05</span>
+            </span>
+            <span class="pillar-name">UI/UX y experiencia</span>
+            <span class="pillar-detail">Interfaces que se entienden sin manual.</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- MARCA ---------- -->
+    <section class="section section--alt" id="marca">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 / marca</p>
+            <h2>Marca</h2>
+          </div>
+          <p>
+            El logotipo existe en tres variantes y siempre se usa el archivo oficial. La tipografía del logotipo
+            vive solo dentro de la marca gráfica; el resto del sistema usa Plus Jakarta Sans como familia única.
+          </p>
+        </div>
+
+        <div class="block">
+          <h3>Logotipo en tres variantes</h3>
+          <p class="block-note">
+            La geometría es la misma en las tres. Cambia la tinta, no el dibujo, así que la marca no se deforma ni se recolorea.
+          </p>
+          <div class="variants">
+            <article class="variant">
+              <div class="variant-stage stage-light">
+                <svg class="logo logo--color" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo en color sobre fondo claro"><use href="#crs-logo-color"></use></svg>
+              </div>
+              <div class="variant-body">
+                <span class="variant-tag">Variante 1</span>
+                <h3>Color</h3>
+                <p>Uso principal. Sobre fondos claros y neutros, en pantalla y en impresión a todo color. Las dos tintas del archivo oficial no se sustituyen.</p>
+              </div>
+            </article>
+            <article class="variant">
+              <div class="variant-stage stage-paper">
+                <svg class="logo logo--mono-dark" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo en negro sobre fondo blanco"><use href="#crs-logo-negro"></use></svg>
+              </div>
+              <div class="variant-body">
+                <span class="variant-tag">Variante 2</span>
+                <h3>Negro</h3>
+                <p>Uso a una sola tinta: papelería, documentos internos, sellos y marca de agua sobre fondos muy claros. No se usa sobre fondos oscuros.</p>
+              </div>
+            </article>
+            <article class="variant">
+              <div class="variant-stage stage-dark">
+                <svg class="logo logo--mono-light" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo en blanco sobre fondo azul profundo"><use href="#crs-logo-blanco"></use></svg>
+              </div>
+              <div class="variant-body">
+                <span class="variant-tag">Variante 3</span>
+                <h3>Blanco</h3>
+                <p>Uso sobre azul profundo, fondos oscuros y superficies de vidrio denso. Nunca sobre blanco ni sobre azul medio, donde pierde contraste.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Recursos de interfaz</h3>
+          <p class="block-note">
+            Dos piezas del logotipo pasan al sistema como recursos funcionales. No son adorno: cada una tiene una tarea concreta.
+          </p>
+          <div class="resources">
+            <article class="resource">
+              <div class="resource-stage">
+                <svg class="glyph" viewBox="0 0 54.31 72.42" role="img" aria-label="Símbolo de recorrido en forma de chevrón">
+                  <use href="#crs-chevron"></use>
+                </svg>
+              </div>
+              <div>
+                <h3>Símbolo de recorrido</h3>
+                <p>Marca el avance y ordena la lectura.</p>
+                <ul class="use-list">
+                  <li>Listas sin orden con elementos importantes.</li>
+                  <li>Pasos de un recorrido y enlaces de avance.</li>
+                </ul>
+                <ul class="use-list use-list--no">
+                  <li>No se usa como viñeta en listas largas ni como separador decorativo.</li>
+                </ul>
+              </div>
+            </article>
+            <article class="resource">
+              <div class="resource-stage">
+                <svg class="glyph glyph--playhead" viewBox="0 0 22.63 81.48" role="img" aria-label="Pieza playhead con forma de i">
+                  <use href="#crs-playhead"></use>
+                </svg>
+              </div>
+              <div>
+                <h3>Pieza playhead</h3>
+                <p>Señala el punto exacto donde está el usuario.</p>
+                <ul class="use-list">
+                  <li>Posición actual en barras de progreso y controles de reproducción.</li>
+                  <li>Índice activo de una sección y favicon del sitio.</li>
+                </ul>
+                <ul class="use-list use-list--no">
+                  <li>No se usa como viñeta ni como signo de puntuación.</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Tamaños mínimos a tamaño real</h3>
+          <p class="block-note">
+            Esta fila está dibujada a escala uno a uno: lo que se ve es el tamaño real en pantalla, y cada espécimen
+            lleva su cota. La línea de la cota mide exactamente el ancho de la pieza, no el de la tarjeta. Por debajo
+            del mínimo, el área de respeto se come la marca y las contraformas del logotipo se cierran.
+          </p>
+          <div class="minsizes">
+            <article class="min-item">
+              <div class="min-stage">
+                <div class="min-specimen" style="--w:150px">
+                  <span class="min-cota">
+                    <span class="min-cota-label">150 px</span>
+                    <span class="min-cota-line"><span class="min-cota-tope"></span><span class="min-cota-rule"></span><span class="min-cota-tope"></span></span>
+                  </span>
+                  <span class="min-piece">
+                    <svg class="logo logo--min" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo a su tamaño mínimo de 150 píxeles de ancho"><use href="#crs-logo-color"></use></svg>
+                  </span>
+                </div>
+              </div>
+              <p class="min-label">Logotipo 150 px</p>
+              <p class="small">Ancho mínimo del logotipo completo en pantalla. La cota mide 150 px de ancho.</p>
+            </article>
+            <article class="min-item">
+              <div class="min-stage">
+                <div class="min-specimen" style="--w:18px">
+                  <span class="min-cota">
+                    <span class="min-cota-label">24 px</span>
+                    <span class="min-cota-line"><span class="min-cota-tope"></span><span class="min-cota-rule"></span><span class="min-cota-tope"></span></span>
+                  </span>
+                  <span class="min-piece">
+                    <svg class="glyph glyph--sm" viewBox="0 0 54.31 72.42" role="img" aria-label="Símbolo a su tamaño mínimo de 24 píxeles de alto">
+                      <use href="#crs-chevron"></use>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <p class="min-label">Símbolo 24 px</p>
+              <p class="small">Alto mínimo del símbolo como recurso de interfaz. La cota marca su ancho: 18 px, que es el alto por la proporción del chevrón.</p>
+            </article>
+            <article class="min-item">
+              <div class="min-stage">
+                <div class="min-specimen" style="--w:24px">
+                  <span class="min-cota">
+                    <span class="min-cota-label">32 px</span>
+                    <span class="min-cota-line"><span class="min-cota-tope"></span><span class="min-cota-rule"></span><span class="min-cota-tope"></span></span>
+                  </span>
+                  <span class="min-piece">
+                    <svg class="glyph glyph--fav32" viewBox="0 0 54.31 72.42" role="img" aria-label="Favicon de 32 píxeles de alto sobre fondo neutro claro">
+                      <use href="#crs-chevron"></use>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <p class="min-label">Favicon 32 px</p>
+              <p class="small">Versión de escritorio y de pantalla de inicio, sobre fondo neutro claro. La cota marca su ancho: 24 px.</p>
+            </article>
+            <article class="min-item">
+              <div class="min-stage">
+                <div class="min-specimen" style="--w:12px">
+                  <span class="min-cota">
+                    <span class="min-cota-label">16 px</span>
+                    <span class="min-cota-line"><span class="min-cota-tope"></span><span class="min-cota-rule"></span><span class="min-cota-tope"></span></span>
+                  </span>
+                  <span class="min-piece">
+                    <svg class="glyph glyph--fav16" viewBox="0 0 54.31 72.42" role="img" aria-label="Favicon de 16 píxeles de alto sobre fondo neutro claro">
+                      <use href="#crs-chevron"></use>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <p class="min-label">Favicon 16 px</p>
+              <p class="small">Pestaña del navegador. El mínimo de la marca, sobre fondo neutro claro. La cota marca su ancho: 12 px.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Área de respeto</h3>
+          <p class="block-note">
+            El símbolo se toma del propio logotipo y se repite al 50 por ciento de opacidad pegado a cada uno de los
+            cuatro lados de la marca, sin separación. La distancia que ocupa esa repetición es el espacio que debe
+            quedar libre alrededor del logotipo: como el símbolo es más alto que ancho, esa distancia es su alto, y si
+            fuera más ancho que alto sería su ancho. En una versión futura del producto el usuario indicará qué
+            elemento de su propio logotipo hace de X.
+          </p>
+          <div class="respect">
+            <div class="respect-figure" role="img" aria-label="Esquema del área de respeto: el logotipo en el centro, el símbolo tomado del logotipo al 50 por ciento de opacidad pegado a sus cuatro lados y la línea azul que encierra toda la composición">
+              <div class="respect-composition">
+                <span class="respect-side respect-side--top" aria-hidden="true">
+                  <svg class="glyph respect-chev" viewBox="0 0 54.31 72.42"><use href="#crs-chevron"></use></svg>
+                </span>
+                <span class="respect-row">
+                  <span class="respect-side respect-side--left" aria-hidden="true">
+                    <svg class="glyph respect-chev" viewBox="0 0 54.31 72.42"><use href="#crs-chevron"></use></svg>
+                  </span>
+                  <span class="respect-logo">
+                    <svg class="logo logo--respect" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo CRS Diseño Arte Digital"><use href="#crs-logo-color"></use></svg>
+                  </span>
+                  <span class="respect-side respect-side--right" aria-hidden="true">
+                    <svg class="glyph respect-chev" viewBox="0 0 54.31 72.42"><use href="#crs-chevron"></use></svg>
+                  </span>
+                </span>
+                <span class="respect-side respect-side--bottom" aria-hidden="true">
+                  <svg class="glyph respect-chev" viewBox="0 0 54.31 72.42"><use href="#crs-chevron"></use></svg>
+                </span>
+              </div>
+            </div>
+            <div class="respect-notes">
+              <p class="respect-caption">Cómo se lee el diagrama</p>
+              <ul class="respect-legend">
+                <li>
+                  <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+                  <span><strong>Logotipo oficial</strong> El mismo de las tres variantes, sin recortes ni márgenes añadidos.</span>
+                </li>
+                <li>
+                  <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+                  <span><strong>Símbolo al 50 por ciento de opacidad</strong> Va pegado a cada lado, al mismo tamaño que el símbolo que va dentro del logotipo, y ocupa la distancia X que debe quedar libre.</span>
+                </li>
+                <li>
+                  <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+                  <span><strong>Línea azul</strong> Delimita el área de respeto completa de la composición.</span>
+                </li>
+              </ul>
+              <p class="respect-medidas">Logo 460 x 118 px, símbolo 45 x 60 px, X = 60 px.</p>
+              <p class="respect-nota">La zona nunca se recorta ni se cruza con otros elementos. Sobre fondos con imagen se respeta igual, con el logotipo blanco.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- REGLAS DE USO ---------- -->
+    <section class="section" id="reglas">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 / normas</p>
+            <h2>Reglas de uso</h2>
+          </div>
+          <p>
+            Siete reglas fijas. La viñeta de esta lista es la forma del símbolo del logotipo, no un signo escrito con una
+            fuente: si el símbolo no viene del SVG oficial, la lista ya está mal.
+          </p>
+        </div>
+
+        <ul class="rules">
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>El logotipo, el símbolo y el playhead se toman siempre del SVG oficial.</span>
+          </li>
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>No se redibujan ni se sustituyen por un signo escrito con una fuente.</span>
+          </li>
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>Color por defecto: negro o blanco se eligen según el fondo, nunca por gusto.</span>
+          </li>
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>No se recolorean fuera de la paleta de azules ni se les añaden sombras.</span>
+          </li>
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>El playhead indica el paso activo y no se usa como viñeta de lista.</span>
+          </li>
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>Las formas del logo son recursos de interfaz, no un muestrario de figuras.</span>
+          </li>
+          <li class="rule">
+            <svg class="glyph" viewBox="0 0 54.31 72.42" aria-hidden="true"><use href="#crs-chevron"></use></svg>
+            <span>Plus Jakarta Sans es la única familia del sistema y el logotipo es la excepción.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ---------- USOS INCORRECTOS ---------- -->
+    <section class="section section--alt" id="usos">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Lo que no se hace</p>
+            <h2>Usos incorrectos</h2>
+          </div>
+          <p>
+            Seis usos que quedan fuera del sistema. El rojo aparece solo aquí: en la marca el rojo es color de error, y un
+            uso incorrecto lo es, así que la señal es la correcta.
+          </p>
+        </div>
+
+        <div class="misuse">
+          <article class="misuse-card">
+            <span class="misuse-bar" aria-hidden="true"></span>
+            <div class="misuse-body">
+              <p class="misuse-tag">Uso incorrecto</p>
+              <p>No se rota ni se inclina.</p>
+            </div>
+          </article>
+          <article class="misuse-card">
+            <span class="misuse-bar" aria-hidden="true"></span>
+            <div class="misuse-body">
+              <p class="misuse-tag">Uso incorrecto</p>
+              <p>No se deforma ni se estira.</p>
+            </div>
+          </article>
+          <article class="misuse-card">
+            <span class="misuse-bar" aria-hidden="true"></span>
+            <div class="misuse-body">
+              <p class="misuse-tag">Uso incorrecto</p>
+              <p>No se recolorea fuera de la paleta.</p>
+            </div>
+          </article>
+          <article class="misuse-card">
+            <span class="misuse-bar" aria-hidden="true"></span>
+            <div class="misuse-body">
+              <p class="misuse-tag">Uso incorrecto</p>
+              <p>No lleva sombras ni contornos.</p>
+            </div>
+          </article>
+          <article class="misuse-card">
+            <span class="misuse-bar" aria-hidden="true"></span>
+            <div class="misuse-body">
+              <p class="misuse-tag">Uso incorrecto</p>
+              <p>No se cambia la proporción entre símbolo y nombre.</p>
+            </div>
+          </article>
+          <article class="misuse-card">
+            <span class="misuse-bar" aria-hidden="true"></span>
+            <div class="misuse-body">
+              <p class="misuse-tag">Uso incorrecto</p>
+              <p>No va sobre fondos sin contraste.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- FONDOS PERMITIDOS ---------- -->
+    <section class="section" id="fondos">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Contraste</p>
+            <h2>Fondos permitidos</h2>
+          </div>
+          <p>
+            Tres fondos admiten el logotipo y cada uno exige una variante. La variante no se elige por gusto: se elige la
+            que conserva el contraste.
+          </p>
+        </div>
+
+        <div class="grounds">
+          <article class="ground">
+            <div class="ground-stage ground-stage--paper">
+              <svg class="logo logo--color" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo en color sobre fondo blanco"><use href="#crs-logo-color"></use></svg>
+            </div>
+            <div class="ground-body">
+              <span class="ground-tag">Fondo 1</span>
+              <h3>Blanco o gris muy claro</h3>
+              <p>Variante color, la de uso por defecto en menús y cabeceras.</p>
+            </div>
+          </article>
+          <article class="ground">
+            <div class="ground-stage ground-stage--base">
+              <svg class="logo logo--mono-dark" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo en negro sobre el fondo base del sistema"><use href="#crs-logo-negro"></use></svg>
+            </div>
+            <div class="ground-body">
+              <span class="ground-tag">Fondo 2</span>
+              <h3>Fondo base y azules claros</h3>
+              <p>Variante negra, para cuando el azul del logotipo no contrasta.</p>
+            </div>
+          </article>
+          <article class="ground">
+            <div class="ground-stage ground-stage--deep">
+              <svg class="logo logo--mono-light" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo en blanco sobre azul profundo"><use href="#crs-logo-blanco"></use></svg>
+            </div>
+            <div class="ground-body">
+              <span class="ground-tag">Fondo 3</span>
+              <h3>Azul profundo o fotografía</h3>
+              <p>Variante blanca, la única que sobrevive sobre imagen.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- FORMAS COMO RECURSOS ---------- -->
+    <section class="section section--alt" id="formas">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Recursos de interfaz</p>
+            <h2>Formas del logo como recursos</h2>
+          </div>
+          <p>
+            Cuatro formas del logotipo pasan al sistema como recursos de interfaz. No es un muestrario de figuras: cada
+            una lleva su uso y fuera de ese uso no se emplea.
+          </p>
+        </div>
+
+        <div class="shapes">
+          <article class="shape">
+            <div class="shape-stage">
+              <svg class="glyph glyph--piece-chevron" viewBox="0 0 54.31 72.42" role="img" aria-label="Chevron del logotipo">
+                <use href="#crs-chevron"></use>
+              </svg>
+            </div>
+            <div class="shape-body">
+              <span class="shape-tag">Chevron</span>
+              <h3>Viñetas y cierre de bloques</h3>
+              <p>Viñeta de listas sin orden con elementos importantes y cierre de bloques.</p>
+            </div>
+          </article>
+          <article class="shape">
+            <div class="shape-stage">
+              <svg class="glyph glyph--piece-playhead" viewBox="0 0 22.63 81.48" role="img" aria-label="Pieza playhead del logotipo">
+                <use href="#crs-playhead"></use>
+              </svg>
+            </div>
+            <div class="shape-body">
+              <span class="shape-tag">Playhead</span>
+              <h3>Paso activo y progreso</h3>
+              <p>Indicador de paso activo en un recorrido y de avance en una barra de progreso.</p>
+            </div>
+          </article>
+          <article class="shape">
+            <div class="shape-stage">
+              <svg class="glyph glyph--ribbon" viewBox="0 0 120 36" role="img" aria-label="Cinta con muesca">
+                <use href="#crs-ribbon"></use>
+              </svg>
+            </div>
+            <div class="shape-body">
+              <span class="shape-tag">Cinta con muesca</span>
+              <h3>Etiquetas de estado</h3>
+              <p>Etiquetas y cintas de estado, con la muesca en V cerrando el extremo.</p>
+            </div>
+          </article>
+          <article class="shape">
+            <div class="shape-stage">
+              <svg class="glyph glyph--skew" viewBox="0 0 120 36" role="img" aria-label="Paralelogramo con corte diagonal">
+                <use href="#crs-skew"></use>
+              </svg>
+            </div>
+            <div class="shape-body">
+              <span class="shape-tag">Paralelogramo</span>
+              <h3>Pestañas y separadores</h3>
+              <p>Pestañas, separadores y pestaña activa, con el corte diagonal de la marca.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ==========================================================
+       MATERIALES Y TOKENS
+       Los tokens en vivo y la galeria de materiales, que es a la vez
+       la zona de pruebas de la pieza en volumen.
+       ========================================================== -->
+  <section class="bloque" id="materiales-y-tokens">
+    
+    <!-- ---------- TOKENS EN VIVO ---------- -->
+    <section class="section" id="tokens">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Fuente única</p>
+            <h2>Tokens en vivo</h2>
+          </div>
+          <p>
+            Estos tres bloques no tienen valores escritos a mano: se construyen al cargar la página con lo que devuelve
+            <code>tokens.json</code>. Los conteos de la cabecera se calculan desde el mismo objeto que se pinta.
+          </p>
+        </div>
+
+        <p class="token-status" id="token-status">
+          <strong>Tokens</strong>
+          <span id="token-origin">Leyendo tokens.json</span>
+          <span class="token-counts" id="token-counts">0 colores / 0 tipografías / 0 espacios</span>
+        </p>
+
+        <div class="block">
+          <h3>Paleta</h3>
+          <p class="block-note">
+            El azul principal y sus escalas son la base. El naranja es solo advertencia, el rojo solo error y el verde solo
+            éxito: ninguno de los tres se usa como color decorativo.
+          </p>
+          <div class="palette" id="palette"></div>
+        </div>
+
+        <div class="block">
+          <h3>Escala tipográfica</h3>
+          <p class="block-note">
+            Plus Jakarta Sans es la única familia. Cada muestra se dibuja con el tamaño real del token, no con una versión reducida.
+          </p>
+          <div class="typescale" id="typescale"></div>
+        </div>
+
+        <div class="block">
+          <h3>Escala de espacio</h3>
+          <p class="block-note">
+            Diez valores correlativos. La barra mide el valor en píxeles del token, así que la progresión se ve de un vistazo.
+          </p>
+          <div class="spacescale" id="spacescale"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- GALERIA DE MATERIALES Y ZONA DE PRUEBAS ---------- -->
+    <!-- La seccion se abre en dos columnas: el objeto de prueba a la
+         izquierda y su area de salida a la derecha. Debajo, a ancho
+         completo, la rejilla de los veinte materiales. El cubo
+         arrastrable vive en una capa propia que cubre las dos
+         columnas y la rejilla entera. No hay una segunda zona de
+         pruebas. -->
+    <section class="section section--alt" id="materiales">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Biblioteca de recursos</p>
+            <h2>Materiales</h2>
+          </div>
+          <p>
+            Veinte variantes numeradas en cuatro grupos. La columna es el grupo y la fila es la intensidad. Ninguna se elige
+            por gusto: la función decide el grupo y cuatro medidas objetivas deciden el número. La rejilla hace además de
+            zona de pruebas: la pieza 3D se arrastra por encima de los veinte materiales.
+          </p>
+        </div>
+
+        <div class="mat-stage">
+          <!-- Dos columnas: el objeto a la izquierda, su area a la derecha. -->
+          <div class="mat-top" id="pyr-stage">
+            <div class="pyr-copy">
+              <span class="pyr-flag">Objeto de prueba</span>
+              <h3 class="pyr-title">Chevron 3D arrastrable</h3>
+              <p class="pyr-desc">
+                El símbolo de la marca en volumen: el polígono oficial extruido, sin imágenes, solo CSS. Tómelo por donde quiera y recórralo
+                sobre la rejilla completa. El cubo se ve entero sobre el relieve y el neumorfismo, y se mete por detrás
+                de los diez vidrios de los grupos C y D, que lo recortan, lo desenfocan y lo tiñen con su receta
+                exacta.
+              </p>
+              <p class="pyr-desc">
+                Para eso está: pasar el objeto por los materiales es la manera de comprobar la receta en algo con
+                volumen. La diferencia entre C1 y D5, o entre A1 y A3, se ve en las caras de la pieza y no en la
+                descripción. Con el dedo se comporta igual que con el ratón y nunca se sale de la galería.
+              </p>
+              <p class="pyr-keys">
+                Teclado: flechas para mover, Mayús con flecha para pasos largos, Inicio para devolverlo a su espacio de
+                salida.
+              </p>
+            </div>
+            <div class="pyr-dock">
+              <div class="pyr-tools">
+                <button class="pyr-btn" type="button" id="pyr-reset">Recolocar la pieza</button>
+                <span class="pyr-state" id="pyr-state" role="status" aria-live="polite">En su espacio de salida</span>
+              </div>
+              <div class="pyr-slot" id="pyr-slot" aria-hidden="true"><span class="pyr-slot-k">Espacio de salida</span></div>
+            </div>
+          </div>
+
+          <div class="mat-head" aria-hidden="true">
+            <span>A / bajo relieve</span>
+            <span>B / neumorfismo</span>
+            <span>C / vidrio neutro</span>
+            <span>D / vidrio azul</span>
+          </div>
+
+          <div class="mat-grid">
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--a">
+                <div class="specimen a a1"><i class="plate" aria-hidden="true"></i></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">A1</span>
+                <span class="mat-name">Surco suave</span>
+                <span class="mat-desc">Fichas grandes. El relieve apenas se insinúa.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--b">
+                <div class="specimen b b1"></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">B1</span>
+                <span class="mat-name">Doble base</span>
+                <span class="mat-desc">Control secundario y pestaña inactiva.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--c">
+                <div class="specimen gl c1"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">C1</span>
+                <span class="mat-name">Vidrio limpio</span>
+                <span class="mat-desc">Muestrario vivo. Casi sin desenfoque.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--d">
+                <div class="specimen gl gl-d d1"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">D1</span>
+                <span class="mat-name">Azul velo</span>
+                <span class="mat-desc">Énfasis apenas teñido sobre fondo claro.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--a">
+                <div class="specimen a a2"><i class="plate" aria-hidden="true"></i></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">A2</span>
+                <span class="mat-name">Surco profundo</span>
+                <span class="mat-desc">Tarjetas medianas con texto de 14 px.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--b">
+                <div class="specimen b b2"></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">B2</span>
+                <span class="mat-name">Difusa amplia</span>
+                <span class="mat-desc">Botón principal en reposo. El hover sube a B3.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--c">
+                <div class="specimen gl c2"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">C2</span>
+                <span class="mat-name">Esmerilado fino</span>
+                <span class="mat-desc">Cabecera fija que deja ver la escena.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--d">
+                <div class="specimen gl gl-d d2"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">D2</span>
+                <span class="mat-name">Azul claro</span>
+                <span class="mat-desc">Cabecera de marca sobre fondo oscuro.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--a">
+                <div class="specimen a a3"><i class="plate" aria-hidden="true"></i></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">A3</span>
+                <span class="mat-name">Hundido con halo</span>
+                <span class="mat-desc">Etiquetas de estado. Halo azul sin color nuevo.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--b">
+                <div class="specimen b b3"></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">B3</span>
+                <span class="mat-name">Contraste alto</span>
+                <span class="mat-desc">Pestaña activa y hover del botón principal.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--c">
+                <div class="specimen gl c3"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">C3</span>
+                <span class="mat-name">Esmerilado medio</span>
+                <span class="mat-desc">Panel de portada con titular encima.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--d">
+                <div class="specimen gl gl-d d3"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">D3</span>
+                <span class="mat-name">Azul medio</span>
+                <span class="mat-desc">Cierre del sitio y pie.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--a">
+                <div class="specimen a a4"><i class="plate" aria-hidden="true"></i></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">A4</span>
+                <span class="mat-name">Emergente bajo</span>
+                <span class="mat-desc">Celdas que deben separarse del fondo.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--b">
+                <div class="specimen b b4"></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">B4</span>
+                <span class="mat-name">Presionado</span>
+                <span class="mat-desc">Estado pulsado. Siempre sombras internas.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--c">
+                <div class="specimen gl c4"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">C4</span>
+                <span class="mat-name">Esmerilado alto</span>
+                <span class="mat-desc">Paneles que ocultan casi todo el fondo.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--d">
+                <div class="specimen gl gl-d d4"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">D4</span>
+                <span class="mat-name">Azul intenso</span>
+                <span class="mat-desc">Panel de llamada a la acción.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--a">
+                <div class="specimen a a5"><i class="plate" aria-hidden="true"></i></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">A5</span>
+                <span class="mat-name">Bisel completo</span>
+                <span class="mat-desc">Bloque pequeño de menos de 80 px.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--b">
+                <div class="specimen b b5"></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">B5</span>
+                <span class="mat-name">Extruido con brillo</span>
+                <span class="mat-desc">Chip pequeño con brillo en el borde superior.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--c">
+                <div class="specimen gl c5"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">C5</span>
+                <span class="mat-name">Vidrio denso</span>
+                <span class="mat-desc">Vidrio de máxima densidad y desenfoque.</span>
+              </figcaption>
+            </figure>
+            <figure class="mat-cell">
+              <div class="mat-field mat-field--d">
+                <div class="specimen gl gl-d d5"><div class="glass" aria-hidden="true"><i class="edge"></i><i class="gr"></i></div></div>
+              </div>
+              <figcaption class="mat-cap">
+                <span class="mat-code">D5</span>
+                <span class="mat-name">Azul profundo</span>
+                <span class="mat-desc">Cinta final de llamada. Tinte máximo.</span>
+              </figcaption>
+            </figure>
+          </div>
+
+          <!-- Campo de arrastre: cubre las dos columnas y la rejilla
+               entera. Sus coordenadas son las del cubo. -->
+          <div class="pyr-field" id="pyr-field">
+            <div class="fcube" id="fcube" tabindex="0" role="img"
+                 aria-label="Chevron 3D arrastrable que gira sobre si mismo. Se mueve con el ratón o con el dedo por toda la rejilla de materiales. Con el teclado se mueve con las flechas, Mayús con flecha da pasos largos y la tecla Inicio lo devuelve a su espacio de salida.">
+              <i class="fcube-shadow" aria-hidden="true"></i>
+              <i class="fcube-ring" aria-hidden="true"></i>
+              <span class="fcube-scene" aria-hidden="true">
+                <div class="pieza" id="pieza">
+                  <div class="pieza-giro" id="pieza-giro">
+                    <div class="chev" id="chev"></div>
+                  </div>
+                </div>
+              </span>
+              <span class="fcube-tag-wrap" aria-hidden="true"><span class="fcube-tag"><i class="fcube-grip"></i>Arrastra</span></span>
+            </div>
+          </div>
+        </div>
+
+        <table class="assign">
+          <caption>Asignación aprobada por función y por medida</caption>
+          <thead>
+            <tr><th scope="col">Superficie</th><th scope="col">Material</th><th scope="col">Por qué</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Cabecera fija</td><td>C2</td><td>Flota sobre la escena y la navegación sigue legible.</td></tr>
+            <tr><td>Panel de portada</td><td>C3</td><td>Es grande, pero lleva titular encima: no pasa de C3.</td></tr>
+            <tr><td>Botón principal</td><td>B2 / B4</td><td>Elemento pequeño y de alto peso visual. El hover sube a B3.</td></tr>
+            <tr><td>Pestañas</td><td>B1 / B3</td><td>El contraste entre estados es la información.</td></tr>
+            <tr><td>Galería de referencia</td><td>C1 a C5</td><td>En la galería el número es el contenido: se muestran los cinco.</td></tr>
+            <tr><td>Fichas de componentes</td><td>A1</td><td>Son grandes y muchas: el relieve debe insinuarse.</td></tr>
+            <tr><td>Tarjetas de materiales</td><td>A2</td><td>Tamaño medio con texto de 14 px encima.</td></tr>
+            <tr><td>Etiquetas de estado</td><td>A3</td><td>El halo azul ancla la etiqueta sin añadir un color nuevo.</td></tr>
+            <tr><td>Cierre del sitio</td><td>D3</td><td>Énfasis de marca con texto encima: no pasa de D3.</td></tr>
+            <tr><td>Cinta de llamada final</td><td>D5</td><td>Es la pieza más pequeña del bloque de énfasis y admite el tinte máximo.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+</main>
+
+<!-- ============================ PIE ============================ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <svg class="logo logo--footer" viewBox="0 0 552.23 141.34" role="img" aria-label="Logotipo CRS Diseño Arte Digital en blanco"><use href="#crs-logo-blanco"></use></svg>
+        <p class="footer-title">UI System CRS</p>
+        <p class="footer-note">
+          Réplica en código puro del sistema de diseño. La landing crece con el sistema,
+          sin inventar diseño fuera del sistema.
+        </p>
+      </div>
+      <div>
+        <ul class="footer-list">
+          <li>Tipografía única: Plus Jakarta Sans, con pila del sistema como respaldo.</li>
+          <li>Tokens leídos de <code>tokens.json</code>, con respaldo incrustado en este archivo.</li>
+          <li>Materiales construidos con CSS puro, sin imágenes de textura.</li>
+          <li>Trabajo local del proyecto. Nada de esta página se ha publicado.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-rule"></div>
+    <div class="footer-bottom">
+      <span>CRS Diseño Arte Digital / UI System</span>
+      <span>Material C3 en la portada y D3 y D5 en el pie</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* -----------------------------------------------------------------
+     Fuente única de tokens. En producción se lee por HTTP. Si falla,
+     se usa el respaldo incrustado, que tiene los mismos 19 colores,
+     8 tipografías y 10 espacios que el archivo publicado.
+     ----------------------------------------------------------------- */
+  var TOKENS_URL = 'https://CRS-DISENO.github.io/crs-design-system-penpot/tokens.json';
+  var FONT_TAIL = ', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+
+  var FALLBACK_TOKENS = {
+    $description: 'Design tokens del sistema CRS. Respaldo incrustado en la landing del UI System, con los mismos valores que tokens.json.',
+    color: {
+      'blue': { $type: 'color', $value: '#1A6CA7', $description: 'Azul de marca: énfasis, enlaces, botones y numeración' },
+      'black': { $type: 'color', $value: '#1D1D1C', $description: 'Negro de marca para texto' },
+      'blue-50': { $type: 'color', $value: '#EAF2F8', $description: 'Fondo de estado y de alerta informativa' },
+      'blue-100': { $type: 'color', $value: '#CFE2F0', $description: 'Bordes suaves y fin del degradado' },
+      'blue-300': { $type: 'color', $value: '#7FB0D4', $description: 'Vidrio iluminado y acento interactivo en oscuro' },
+      'blue-700': { $type: 'color', $value: '#124C76', $description: 'Hover y texto sobre fondo claro' },
+      'blue-900': { $type: 'color', $value: '#0B2E47', $description: 'Fondos oscuros profundos' },
+      'white': { $type: 'color', $value: '#FFFFFF', $description: 'Texto, objeto o superficie' },
+      'bg-base': { $type: 'color', $value: '#F4F6F8', $description: 'Fondo base claro' },
+      'dark': { $type: 'color', $value: '#0E1116', $description: 'Fondo base oscuro, nunca negro puro' },
+      'dark-panel': { $type: 'color', $value: '#131A24', $description: 'Panel oscuro' },
+      'text-primary': { $type: 'color', $value: '#1D1D1C', $description: 'Texto principal' },
+      'text-secondary': { $type: 'color', $value: '#5A6068', $description: 'Texto secundario' },
+      'text-muted': { $type: 'color', $value: '#8B939C', $description: 'Texto terciario' },
+      'text-light': { $type: 'color', $value: '#F2F4F7', $description: 'Texto sobre fondo oscuro' },
+      'text-muted-dark': { $type: 'color', $value: '#6E7781', $description: 'Texto terciario en tema oscuro' },
+      'accent-orange': { $type: 'color', $value: '#F0A868', $description: 'Solo advertencia o precaución' },
+      'accent-success': { $type: 'color', $value: '#3FA97B', $description: 'Solo éxito o mensaje positivo' },
+      'accent-danger': { $type: 'color', $value: '#D9534F', $description: 'Solo error o señal negativa' }
+    },
+    typography: {
+      'display-hero': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '800', fontSize: 96 }, $description: 'Titular de portada' },
+      'display-h1': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '800', fontSize: 60 }, $description: 'Título de página' },
+      'display-h2': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '700', fontSize: 40 }, $description: 'Título de sección' },
+      'display-h3': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '700', fontSize: 24 }, $description: 'Subtítulo y nombre de producto' },
+      'body-large': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '400', fontSize: 18 }, $description: 'Texto destacado' },
+      'body-base': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '400', fontSize: 16 }, $description: 'Texto base' },
+      'body-small': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '400', fontSize: 14 }, $description: 'Texto secundario' },
+      'label-caps': { $type: 'typography', $value: { fontFamily: 'Plus Jakarta Sans', fontWeight: '700', fontSize: 12 }, $description: 'Etiquetas en mayúsculas con tracking' }
+    },
+    space: {
+      's1': { $type: 'dimension', $value: 4 },
+      's2': { $type: 'dimension', $value: 8 },
+      's3': { $type: 'dimension', $value: 12 },
+      's4': { $type: 'dimension', $value: 16 },
+      's5': { $type: 'dimension', $value: 24 },
+      's6': { $type: 'dimension', $value: 32 },
+      's7': { $type: 'dimension', $value: 48 },
+      's8': { $type: 'dimension', $value: 64 },
+      's9': { $type: 'dimension', $value: 96 },
+      's10': { $type: 'dimension', $value: 128 }
+    }
+  };
+
+  function make(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (typeof text === 'string') { node.textContent = text; }
+    return node;
+  }
+
+  function isObject(value) {
+    return value !== null && typeof value === 'object';
+  }
+
+  function colorEntries(tokens) {
+    var source = isObject(tokens) && isObject(tokens.color) ? tokens.color : {};
+    var out = [];
+    Object.keys(source).forEach(function (key) {
+      var token = source[key];
+      if (isObject(token) && typeof token.$value === 'string') {
+        out.push({
+          name: key,
+          value: token.$value,
+          description: typeof token.$description === 'string' ? token.$description : ''
+        });
+      }
+    });
+    return out;
+  }
+
+  function typeEntries(tokens) {
+    var source = isObject(tokens) && isObject(tokens.typography) ? tokens.typography : {};
+    var out = [];
+    Object.keys(source).forEach(function (key) {
+      var token = source[key];
+      var value = isObject(token) ? token.$value : null;
+      if (isObject(value)) {
+        var size = Number(value.fontSize);
+        out.push({
+          name: key,
+          family: typeof value.fontFamily === 'string' && value.fontFamily ? value.fontFamily : 'Plus Jakarta Sans',
+          weight: value.fontWeight ? String(value.fontWeight) : '400',
+          size: isFinite(size) && size > 0 ? size : 16,
+          description: typeof token.$description === 'string' ? token.$description : ''
+        });
+      }
+    });
+    return out;
+  }
+
+  function spaceEntries(tokens) {
+    var source = isObject(tokens) && isObject(tokens.space) ? tokens.space : {};
+    var out = [];
+    Object.keys(source).forEach(function (key) {
+      var token = source[key];
+      var raw = isObject(token) ? token.$value : null;
+      var size = typeof raw === 'number' ? raw : parseFloat(String(raw));
+      if (isFinite(size)) {
+        out.push({ name: key, value: size });
+      }
+    });
+    return out;
+  }
+
+  function renderPalette(host, list) {
+    host.textContent = '';
+    list.forEach(function (item) {
+      var card = make('article', 'swatch');
+      var chip = make('div', 'swatch-chip');
+      chip.style.background = item.value;
+      var body = make('div', 'swatch-body');
+      body.appendChild(make('p', 'swatch-name', item.name));
+      body.appendChild(make('p', 'swatch-hex', item.value.toUpperCase()));
+      if (item.description) {
+        body.appendChild(make('p', 'swatch-desc', item.description));
+      }
+      card.appendChild(chip);
+      card.appendChild(body);
+      host.appendChild(card);
+    });
+  }
+
+  function renderTypescale(host, list) {
+    host.textContent = '';
+    list.forEach(function (item) {
+      var row = make('div', 'ts-row');
+      var meta = make('div', 'ts-meta');
+      meta.appendChild(make('p', 'ts-name', item.name));
+      meta.appendChild(make('p', 'ts-spec', item.weight + ' / ' + item.size + ' px'));
+      if (item.description) {
+        meta.appendChild(make('p', 'ts-desc', item.description));
+      }
+      var sample = make('p', 'ts-sample', 'Aa');
+      sample.style.fontFamily = '"' + item.family + '"' + FONT_TAIL;
+      sample.style.fontWeight = item.weight;
+      sample.style.fontSize = item.size + 'px';
+      row.appendChild(meta);
+      row.appendChild(sample);
+      host.appendChild(row);
+    });
+  }
+
+  function renderSpacescale(host, list) {
+    host.textContent = '';
+    list.forEach(function (item) {
+      var row = make('div', 'sp-row');
+      var wrap = make('div', 'sp-bar-wrap');
+      var bar = make('div', 'sp-bar');
+      bar.style.width = item.value + 'px';
+      wrap.appendChild(bar);
+      row.appendChild(make('span', 'sp-name', item.name));
+      row.appendChild(make('span', 'sp-val', item.value + ' px'));
+      row.appendChild(wrap);
+      host.appendChild(row);
+    });
+  }
+
+  function setStatus(state) {
+    var box = document.getElementById('token-status');
+    var origin = document.getElementById('token-origin');
+    if (!box || !origin) { return; }
+    if (state.source === 'remoto') {
+      box.classList.remove('token-status--fallback');
+      origin.textContent = 'Origen: tokens.json en línea, leído con fetch al cargar la página.';
+    } else {
+      box.classList.add('token-status--fallback');
+      origin.textContent = 'Origen: respaldo incrustado. La lectura de tokens.json no respondió (' + state.detail + '); los valores son los mismos.';
+    }
+  }
+
+  function loadTokens() {
+    var controller = null;
+    var timer = null;
+    var options = {};
+    try {
+      if (typeof AbortController !== 'undefined') {
+        controller = new AbortController();
+        options.signal = controller.signal;
+        timer = setTimeout(function () { controller.abort(); }, 5000);
+      }
+      return fetch(TOKENS_URL, options).then(function (response) {
+        if (timer) { clearTimeout(timer); }
+        if (!response.ok) { throw new Error('HTTP ' + response.status); }
+        return response.json();
+      }).then(function (data) {
+        if (!isObject(data) || !isObject(data.color) || !isObject(data.typography) || !isObject(data.space)) {
+          throw new Error('estructura incompleta');
+        }
+        return { tokens: data, source: 'remoto', detail: '' };
+      }).catch(function (error) {
+        if (timer) { clearTimeout(timer); }
+        return { tokens: FALLBACK_TOKENS, source: 'respaldo', detail: (error && error.message) ? error.message : 'no disponible' };
+      });
+    } catch (error) {
+      return Promise.resolve({
+        tokens: FALLBACK_TOKENS,
+        source: 'respaldo',
+        detail: (error && error.message) ? error.message : 'no disponible'
+      });
+    }
+  }
+
+  function boot() {
+    var paletteHost = document.getElementById('palette');
+    var typeHost = document.getElementById('typescale');
+    var spaceHost = document.getElementById('spacescale');
+    var counts = document.getElementById('token-counts');
+    if (!paletteHost || !typeHost || !spaceHost) { return; }
+
+    loadTokens().then(function (result) {
+      var colors = colorEntries(result.tokens);
+      var types = typeEntries(result.tokens);
+      var spaces = spaceEntries(result.tokens);
+      renderPalette(paletteHost, colors);
+      renderTypescale(typeHost, types);
+      renderSpacescale(spaceHost, spaces);
+      if (counts) {
+        counts.textContent = colors.length + ' colores / ' + types.length + ' tipografías / ' + spaces.length + ' espacios';
+      }
+      setStatus(result);
+    }).catch(function () {
+      renderPalette(paletteHost, colorEntries(FALLBACK_TOKENS));
+      renderTypescale(typeHost, typeEntries(FALLBACK_TOKENS));
+      renderSpacescale(spaceHost, spaceEntries(FALLBACK_TOKENS));
+      setStatus({ source: 'respaldo', detail: 'error inesperado al pintar' });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<script>
+/* ============================================================
+   ARRASTRE DEL CUBO
+   El cubo es absoluto dentro de su campo de arrastre, la capa que
+   cubre las dos columnas de la seccion y la rejilla de los veinte
+   materiales, asi que sus coordenadas son de ese campo:
+   translate3d(x,y) en pixeles de la propia galeria.
+   - Se acota siempre al campo (nunca se sale ni crea scroll).
+   - Captura de puntero: raton y dedo con el mismo codigo.
+   - Flechas del teclado e Inicio para devolverlo.
+   - Por debajo de 900 px de ancho, al soltar se aparta solo de
+     los controles pulsables (clearControls), igual que la
+     referencia congelada.
+   - El giro NO se toca aqui: es una animacion CSS del propio cubo,
+     asi que arrastrar no reinicia ni detiene la vuelta.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var field = document.getElementById("pyr-field");
+  var obj = document.getElementById("fcube");
+  var slot = document.getElementById("pyr-slot");
+  var stage = document.getElementById("pyr-stage");
+  var btn = document.getElementById("pyr-reset");
+  var status = document.getElementById("pyr-state");
+  if (!field || !obj) { return; }
+
+  var M = 8;              /* margen de seguridad dentro de la zona */
+  var x = 0, y = 0;       /* posicion actual, en pixeles de la zona */
+  var startX = 0, startY = 0, originX = 0, originY = 0;
+  var dragging = false, pointerId = null;
+  var touched = false;    /* ya lo tomo alguien */
+
+  function clamp(v, lo, hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
+  }
+
+  /* el punto de anclaje del cubo es el centro de su escena, no el centro
+     de la caja: la caja lleva ademas la etiqueta de abajo */
+  function kicker() {
+    var scene = obj.querySelector(".fcube-scene");
+    if (!scene) { return Math.round(obj.offsetHeight / 2); }
+    return Math.round(scene.offsetTop + scene.offsetHeight / 2);
+  }
+
+  /* acota a la zona y pinta. Es el unico sitio que escribe el transform. */
+  function apply() {
+    var hiX = Math.max(M, field.clientWidth - obj.offsetWidth - M);
+    var hiY = Math.max(M, field.clientHeight - obj.offsetHeight - M);
+    x = clamp(x, M, hiX);
+    y = clamp(y, M, hiY);
+    obj.style.transform = "translate3d(" + Math.round(x) + "px," + Math.round(y) + "px,0)";
+  }
+
+  /* rectangulo de un elemento en coordenadas de la zona de pruebas */
+  function boxIn(el) {
+    var r = el.getBoundingClientRect();
+    var f = field.getBoundingClientRect();
+    return {
+      left: r.left - f.left,
+      top: r.top - f.top,
+      right: r.right - f.left,
+      bottom: r.bottom - f.top,
+      width: r.width,
+      height: r.height
+    };
+  }
+
+  /* ------------------------------------------------------------
+     PROTECCION DE MOVIL: la pieza no se estaciona sobre un control
+     pulsable. Solo actua por debajo de 900 px de ancho, que es donde
+     manda el dedo: en escritorio retorna de inmediato y el arrastre
+     no cambia. Mide la pieza y los controles al soltar, al mover con
+     el teclado y al reacotar por cambio de viewport.
+     ------------------------------------------------------------ */
+
+  /* el problema es de dedo: en pantalla ancha no se toca nada */
+  function narrow() {
+    try { return window.matchMedia("(max-width:900px)").matches; }
+    catch (err) { return false; }
+  }
+
+  /* controles que hay que dejar libres: el boton de recolocar, que vive
+     en el area del objeto de la columna derecha, y cualquier control
+     pulsable que caiga dentro del campo de arrastre. Se buscan en toda la
+     pagina porque el boton no esta dentro del campo: las cajas se miden
+     contra el. */
+  var CONTROLES = ".pyr-btn, .pyr-tools a, .pyr-tools button, .pyr-field a, .pyr-field button";
+
+  /* zona libre mas cercana, por encima o por debajo del bloque de controles.
+     El clamp final usa el alto de la CAJA (no el pintado) porque es el que
+     aplica apply(), y asi el acotado no devuelve el cubo sobre el bloque. */
+  function freeY(hits, h) {
+    var gap = 16;
+    var boxH = obj.offsetHeight;
+    var hiY = Math.max(M, field.clientHeight - boxH - M);
+    var top = hits[0].top, bottom = hits[0].bottom, i, cand, c, best = null;
+    for (i = 1; i < hits.length; i++) {
+      if (hits[i].top < top) { top = hits[i].top; }
+      if (hits[i].bottom > bottom) { bottom = hits[i].bottom; }
+    }
+    for (i = 0; i < 2; i++) {
+      cand = (i === 0) ? (top - gap - h) : (bottom + gap);
+      c = clamp(cand, M, hiY);
+      if (c < bottom && c + h > top) { continue; }
+      if (best === null || Math.abs(c - y) < Math.abs(best - y)) { best = c; }
+    }
+    return best;
+  }
+
+  /* aparta el cubo a la zona libre mas cercana, con la transicion is-snap */
+  function clearControls() {
+    if (dragging || !narrow()) { return; }
+    var body = obj.querySelector(".fcube-scene");
+    var r = boxIn(body || obj);
+    var list = document.querySelectorAll(CONTROLES), hits = [], i, c;
+    for (i = 0; i < list.length; i++) {
+      c = boxIn(list[i]);
+      if (!c.width || !c.height) { continue; }
+      if (r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top) {
+        hits.push(c);
+      }
+    }
+    if (!hits.length) { return; }
+    var ny = freeY(hits, r.height);
+    if (ny === null || Math.abs(ny - y) < 1) { return; }
+    y = ny;
+    obj.classList.add("is-snap");
+    apply();
+    window.setTimeout(function () { obj.classList.remove("is-snap"); }, 380);
+  }
+
+  /* espacio de salida: el cubo nace centrado en su hueco */
+  function place() {
+    var s = slot ? boxIn(slot) : null;
+    if (!s || !s.width) {
+      x = Math.round(field.clientWidth / 2 - obj.offsetWidth / 2);
+      y = Math.round(field.clientHeight / 3);
+      apply();
+      return;
+    }
+    x = Math.round(s.left + s.width / 2 - obj.offsetWidth / 2);
+    y = Math.round(s.top + s.height / 2 - kicker());
+    apply();
+  }
+
+  function say(text) {
+    if (status) { status.textContent = text; }
+  }
+
+  function markTouched() {
+    if (touched) { return; }
+    touched = true;
+    obj.classList.add("is-touched");
+    if (stage) { stage.classList.add("is-moved"); }
+    say("Movido: usa Recolocar o la tecla Inicio para volver");
+  }
+
+  function reset() {
+    touched = false;
+    dragging = false;
+    pointerId = null;
+    obj.classList.remove("is-touched", "is-dragging");
+    if (stage) { stage.classList.remove("is-moved"); }
+    obj.classList.add("is-snap");
+    place();
+    window.setTimeout(function () { obj.classList.remove("is-snap"); }, 380);
+    say("En su espacio de salida");
+  }
+
+  obj.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) { return; }
+    markTouched();
+    dragging = true;
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    originX = x;
+    originY = y;
+    obj.classList.remove("is-snap");
+    obj.classList.add("is-dragging");
+    try { obj.setPointerCapture(pointerId); } catch (err) {}
+    try { obj.focus({ preventScroll: true }); } catch (err) {}
+    e.preventDefault();
+  });
+
+  obj.addEventListener("pointermove", function (e) {
+    if (!dragging || e.pointerId !== pointerId) { return; }
+    x = originX + (e.clientX - startX);
+    y = originY + (e.clientY - startY);
+    apply();
+    e.preventDefault();
+  });
+
+  function stop(e) {
+    if (!dragging) { return; }
+    dragging = false;
+    obj.classList.remove("is-dragging");
+    if (pointerId !== null) {
+      try { obj.releasePointerCapture(pointerId); } catch (err) {}
+      pointerId = null;
+    }
+    /* si el gesto termino fuera o a medias, apply() ya la deja dentro */
+    apply();
+    clearControls();
+    if (e && e.preventDefault) { e.preventDefault(); }
+  }
+
+  obj.addEventListener("pointerup", stop);
+  obj.addEventListener("pointercancel", stop);
+  obj.addEventListener("lostpointercapture", function () {
+    if (!dragging) { return; }
+    dragging = false;
+    obj.classList.remove("is-dragging");
+    pointerId = null;
+    apply();
+    clearControls();
+  });
+
+  /* alternativa accesible: flechas para mover, Inicio para volver */
+  obj.addEventListener("keydown", function (e) {
+    var step = e.shiftKey ? 36 : 12;
+    if (e.key === "Home") {
+      reset();
+      e.preventDefault();
+      return;
+    }
+    var handled = true;
+    if (e.key === "ArrowLeft") { x -= step; }
+    else if (e.key === "ArrowRight") { x += step; }
+    else if (e.key === "ArrowUp") { y -= step; }
+    else if (e.key === "ArrowDown") { y += step; }
+    else { handled = false; }
+    if (handled) {
+      markTouched();
+      apply();
+      clearControls();
+      e.preventDefault();
+    }
+  });
+
+  if (btn) {
+    btn.addEventListener("click", function () {
+      reset();
+      try { obj.focus({ preventScroll: true }); } catch (err) {}
+    });
+  }
+
+  /* el viewport cambia: se reacota en el sitio o se vuelve al hueco */
+  var resizeTimer = null;
+  function onResize() {
+    if (resizeTimer) { clearTimeout(resizeTimer); }
+    resizeTimer = window.setTimeout(function () {
+      if (touched) { apply(); clearControls(); } else { place(); }
+    }, 120);
+  }
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", onResize);
+
+  place();
+  /* si la tipografia llega tarde, se recompone mientras nadie haya
+     tomado todavia el cubo */
+  if (document.readyState !== "complete") {
+    window.addEventListener("load", function () { if (!touched) { place(); } });
+  }
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+    document.fonts.ready.then(function () { if (!touched) { place(); } });
+  }
+})();
+
+
+(function () {
+  "use strict";
+
+  /* Simbolo de marca. Es el poligono del SVG oficial del logotipo, en
+     coordenadas del viewBox 552,23 por 141,34, copiado literalmente:
+     208.22,13.58  235.1,49.79  208.22,86  235.38,86  262.53,49.79  235.38,13.58
+     No se redibuja a ojo y no se aproxima: de estos seis vertices salen
+     las dos caras planas y las seis paredes del volumen. */
+  var OFICIAL = [208.22, 13.58, 235.1, 49.79, 208.22, 86, 235.38, 86, 262.53, 49.79, 235.38, 13.58];
+
+  var UNIDAD = 2.4;   /* escala del simbolo: 130,34 por 173,81 px */
+  var FONDO = 46;     /* profundidad del volumen en px */
+
+  var pieza = document.getElementById("pieza");
+  var caja = document.getElementById("chev");
+  var giro = document.getElementById("pieza-giro");
+  if (!pieza || !caja || !giro) { return; }
+
+  /* 1. Caja del poligono y puntos normalizados, con el minimo en 0,0. */
+  var total = OFICIAL.length / 2;
+  var i;
+  var minX = OFICIAL[0];
+  var minY = OFICIAL[1];
+  var maxX = OFICIAL[0];
+  var maxY = OFICIAL[1];
+  for (i = 1; i < total; i++) {
+    if (OFICIAL[i * 2] < minX) { minX = OFICIAL[i * 2]; }
+    if (OFICIAL[i * 2] > maxX) { maxX = OFICIAL[i * 2]; }
+    if (OFICIAL[i * 2 + 1] < minY) { minY = OFICIAL[i * 2 + 1]; }
+    if (OFICIAL[i * 2 + 1] > maxY) { maxY = OFICIAL[i * 2 + 1]; }
+  }
+  var ancho = (maxX - minX) * UNIDAD;
+  var alto = (maxY - minY) * UNIDAD;
+
+  var puntos = [];
+  for (i = 0; i < total; i++) {
+    puntos.push({
+      x: (OFICIAL[i * 2] - minX) * UNIDAD,
+      y: (OFICIAL[i * 2 + 1] - minY) * UNIDAD
+    });
+  }
+
+  /* 2. Area con signo. Dice hacia donde recorre el poligono y, con eso,
+     cual es el lado de fuera de cada arista. */
+  var area = 0;
+  for (i = 0; i < total; i++) {
+    var pa = puntos[i];
+    var pb = puntos[(i + 1) % total];
+    area += pa.x * pb.y - pb.x * pa.y;
+  }
+  var signo = area > 0 ? 1 : -1;
+
+  /* 3. El contorno en px, para el recorte de las dos caras planas. */
+  var vertices = [];
+  for (i = 0; i < total; i++) {
+    vertices.push(puntos[i].x.toFixed(2) + "px " + puntos[i].y.toFixed(2) + "px");
+  }
+  var contorno = "polygon(" + vertices.join(", ") + ")";
+
+  /* 4. Fabrica de piezas: todas son elementos i dentro de .chev. */
+  function piezaNueva(clases) {
+    var el = document.createElement("i");
+    el.className = clases;
+    return el;
+  }
+
+  /* 5. Cara plana: una capa de contorno claro y, dentro, el tinte con su
+     filete de luz. El contorno se recorta con el mismo poligono, asi que la
+     cara queda ribeteada por los cuatro costados. */
+  function caraPlana(tinte, z, llevaBrillo) {
+    var cara = piezaNueva("cara");
+    cara.style.clipPath = contorno;
+    cara.style.transform = "translateZ(" + z.toFixed(2) + "px)";
+    var capa = piezaNueva("tinte " + tinte);
+    capa.style.clipPath = contorno;
+    capa.appendChild(piezaNueva(llevaBrillo ? "brillo" : "brillo suave"));
+    cara.appendChild(capa);
+    return cara;
+  }
+
+  /* 6. Todo se monta en un fragmento suelto: cuando entra en el documento
+     entra de una sola vez, con los estilos ya puestos y sin pasar por un
+     estado intermedio. El navegador no recalcula nada hasta el montaje. */
+  var fragmento = document.createDocumentFragment();
+
+  /* Las seis paredes. El tinte sale de la orientacion de la normal hacia
+     fuera y, dentro de cada eje, tambien del sentido de la arista: las dos
+     paredes que miran al mismo lado nunca salen del mismo color. */
+  for (i = 0; i < total; i++) {
+    var p = puntos[i];
+    var q = puntos[(i + 1) % total];
+    var dx = q.x - p.x;
+    var dy = q.y - p.y;
+    var largo = Math.sqrt(dx * dx + dy * dy);
+    if (largo < 0.01) { continue; }
+
+    var nx = (signo * dy) / largo;
+    var ny = (-signo * dx) / largo;
+    var tinte;
+    if (Math.abs(nx) >= Math.abs(ny)) {
+      if (nx > 0) {
+        tinte = dx > 0 ? "ch-r" : "ch-r2";
+      } else {
+        tinte = dx > 0 ? "ch-l" : "ch-l2";
+      }
+    } else {
+      tinte = ny > 0 ? "ch-b" : "ch-t";
+    }
+
+    var angulo = (Math.atan2(dy, dx) * 180) / Math.PI;
+    var pared = piezaNueva("pared " + tinte);
+    pared.style.width = largo.toFixed(2) + "px";
+    pared.style.height = (FONDO + 0.8).toFixed(2) + "px";
+    pared.style.transform =
+      "translate3d(" + p.x.toFixed(2) + "px, " + p.y.toFixed(2) + "px, " +
+      (-(FONDO / 2) - 0.4).toFixed(2) + "px) rotateZ(" + angulo.toFixed(2) + "deg) rotateX(90deg)";
+
+    fragmento.appendChild(pared);
+  }
+
+  /* Primero lo de detras, para que el orden de pintado acompañe. */
+  fragmento.appendChild(caraPlana("ch-back", -FONDO / 2, false));
+  fragmento.appendChild(caraPlana("ch-front", FONDO / 2, true));
+
+  /* 7. La caja de la pieza, calculada del poligono y no escrita a mano. Antes
+     del montaje, para que el primer calculo de estilo ya la tenga. */
+  pieza.style.width = ancho.toFixed(2) + "px";
+  pieza.style.height = alto.toFixed(2) + "px";
+
+  /* 8. Montaje unico. */
+  caja.appendChild(fragmento);
+
+  /* 9. El volumen se muestra y el giro arranca solo cuando la geometria esta
+     montada y el navegador ya compuso el primer fotograma: nunca se ve la
+     pieza a medio construir ni un giro sobre una caja vacia. */
+  requestAnimationFrame(function () {
+    caja.classList.add("is-lista");
+    giro.classList.add("is-lista");
+  });
+})();
+
+</script>
+</body>
+</html>
