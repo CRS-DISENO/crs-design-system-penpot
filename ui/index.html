@@ -18,7 +18,7 @@
      tokens. Este bloque solo fija el vocabulario de la pagina.
      ========================================================= */
   :root{
-    --blue:#1A6CA7;
+    --blue:#1C6CA9;
     --blue-700:#124C76;
     --blue-900:#0B2E47;
     --blue-300:#7FB0D4;
@@ -50,7 +50,7 @@
       radial-gradient(420px 320px at 12% 16%, rgba(127,176,212,.92), rgba(127,176,212,0) 70%),
       radial-gradient(520px 380px at 78% 30%, rgba(26,108,167,.90), rgba(26,108,167,0) 72%),
       radial-gradient(480px 320px at 42% 90%, rgba(11,46,71,.92), rgba(11,46,71,0) 74%),
-      linear-gradient(140deg, #0B2E47 0%, #124C76 52%, #1A6CA7 100%);
+      linear-gradient(140deg, #0B2E47 0%, #124C76 52%, #1C6CA9 100%);
     /* Fondo de la zona de pruebas: claro y con volumen, para que el vidrio de
        los grupos C y D tenga algo que distorsionar detras. */
     --stage:
@@ -1448,7 +1448,7 @@
     letter-spacing:.16em;
     text-transform:uppercase;
     color:#FFFFFF;
-    background:linear-gradient(145deg,#1A6CA7 0%,#124C76 54%,#0B2E47 100%);
+    background:linear-gradient(145deg,#1C6CA9 0%,#124C76 54%,#0B2E47 100%);
     clip-path:polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
   }
   .pyr-title{
@@ -1628,8 +1628,8 @@
      separacion. El tinte sube de azul profundo abajo a claro
      arriba, todo dentro de la paleta: el volumen se lee sin una
      sola imagen y sin filtros. */
-  .cf-front{ transform:translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#1A6CA7 0%,#124C76 100%); }
-  .cf-right{ transform:rotateY(90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#7FB0D4 0%,#1A6CA7 100%); }
+  .cf-front{ transform:translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#1C6CA9 0%,#124C76 100%); }
+  .cf-right{ transform:rotateY(90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#7FB0D4 0%,#1C6CA9 100%); }
   .cf-left{ transform:rotateY(-90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#0B2E47 0%,#124C76 100%); }
   .cf-back{ transform:rotateY(180deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#124C76 0%,#0B2E47 100%); }
   .cf-top{ transform:rotateX(90deg) translateZ(calc(var(--cs) / 2)); background:linear-gradient(150deg,#EAF2F8 0%,#7FB0D4 100%); }
@@ -1654,7 +1654,7 @@
     letter-spacing:.12em;
     text-transform:uppercase;
     color:#FFFFFF;
-    background:linear-gradient(145deg,#1A6CA7 0%,#124C76 54%,#0B2E47 100%);
+    background:linear-gradient(145deg,#1C6CA9 0%,#124C76 54%,#0B2E47 100%);
     /* Cinta fuera de esquina: muesca a la izquierda y punta a la derecha. */
     clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
   }
@@ -3017,7 +3017,7 @@
   var FALLBACK_TOKENS = {
     $description: 'Design tokens del sistema CRS. Respaldo incrustado en la landing del UI System, con los mismos valores que tokens.json.',
     color: {
-      'blue': { $type: 'color', $value: '#1A6CA7', $description: 'Azul de marca: énfasis, enlaces, botones y numeración' },
+      'blue': { $type: 'color', $value: '#1C6CA9', $description: 'Azul de marca: énfasis, enlaces, botones y numeración' },
       'black': { $type: 'color', $value: '#1D1D1C', $description: 'Negro de marca para texto' },
       'blue-50': { $type: 'color', $value: '#EAF2F8', $description: 'Fondo de estado y de alerta informativa' },
       'blue-100': { $type: 'color', $value: '#CFE2F0', $description: 'Bordes suaves y fin del degradado' },

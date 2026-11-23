@@ -6,7 +6,7 @@
 <title>CRS Design System: plugin de Penpot que genera tu sistema de diseño</title>
 <meta name="description" content="Plugin de Penpot que genera con un clic las páginas 00 Portada, 01 Índice y 02 Marca de un sistema de diseño, crea la biblioteca compartida de colores y tipografías y publica los tokens en un único archivo JSON. Instalación por URL, versión vigente v22.">
 <link rel="canonical" href="https://CRS-DISENO.github.io/crs-design-system-penpot/">
-<meta name="theme-color" content="#1A6CA7">
+<meta name="theme-color" content="#1C6CA9">
 <meta name="author" content="CRS Diseño">
 
 <!-- Open Graph -->
@@ -36,7 +36,7 @@
      El logotipo es un SVG oficial, no texto.
      ============================================================ */
   :root{
-    --blue:#1A6CA7;
+    --blue:#1C6CA9;
     --blue-d:#124C76;
     --blue-dd:#0B2E47;
     --blue-l:#7FB0D4;
@@ -57,9 +57,9 @@
     /* degradados: solo los azules de la paleta.
        El naranja, el rojo y el verde no entran en ningun degradado
        decorativo: quedan reservados a estado (aviso, error, exito). */
-    --grad-blue:linear-gradient(145deg,#1A6CA7 0%,#124C76 54%,#0B2E47 100%);
-    --grad-blue-l:linear-gradient(145deg,#7FB0D4 0%,#1A6CA7 48%,#124C76 100%);
-    --grad-ribbon:linear-gradient(90deg,#1A6CA7 0%,#124C76 62%,#0B2E47 100%);
+    --grad-blue:linear-gradient(145deg,#1C6CA9 0%,#124C76 54%,#0B2E47 100%);
+    --grad-blue-l:linear-gradient(145deg,#7FB0D4 0%,#1C6CA9 48%,#124C76 100%);
+    --grad-ribbon:linear-gradient(90deg,#1C6CA9 0%,#124C76 62%,#0B2E47 100%);
     --grad-ice:linear-gradient(145deg,#EAF2F8 0%,#CFE2F0 100%);
 
     --font:"Plus Jakarta Sans","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -222,7 +222,7 @@
       inset 0 1px 0 rgba(255,255,255,.42);
   }
   .btn-primary:hover{
-    background:linear-gradient(145deg,#2E8AC6 0%,#1A6CA7 50%,#124C76 100%);
+    background:linear-gradient(145deg,#2E8AC6 0%,#1C6CA9 50%,#124C76 100%);
     transform:translateY(-1px);
     box-shadow:
       6px 6px 11px rgba(120,140,162,.9),
@@ -518,7 +518,7 @@
   }
   .car-slide::before{
     content:""; position:absolute; left:0; top:0; width:44px; height:3px;
-    background:linear-gradient(90deg,#1A6CA7,#7FB0D4);
+    background:linear-gradient(90deg,#1C6CA9,#7FB0D4);
   }
   .car-in{
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);
@@ -705,7 +705,7 @@
   }
   .card::before{
     content:""; position:absolute; left:0; top:0; width:44px; height:3px;
-    background:linear-gradient(90deg,#1A6CA7,#7FB0D4);
+    background:linear-gradient(90deg,#1C6CA9,#7FB0D4);
   }
   .card h3{
     font-size:12.5px; letter-spacing:.11em; margin:10px 0 8px;
@@ -869,7 +869,7 @@
     padding:22px 30px;
     display:flex; align-items:center; justify-content:space-between;
     gap:18px; flex-wrap:wrap;
-    background:linear-gradient(90deg,#1A6CA7 0%,#124C76 58%,#0B2E47 100%);
+    background:linear-gradient(90deg,#1C6CA9 0%,#124C76 58%,#0B2E47 100%);
     clip-path:polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%, 22px 50%);
   }
   .cta-in{ position:relative; z-index:6; }
