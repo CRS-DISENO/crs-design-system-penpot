@@ -1840,6 +1840,84 @@
       inset 0 -6px 16px rgba(11,46,71,.20),
       0 16px 32px rgba(11,46,71,.16);
   }
+
+  /* ============================================================
+     EL CANTO DEL VIDRIO NO SE PINTA
+     El marco blanco tenia dos origenes: el borde y las lineas interiores de
+     .glass, y los filetes del elemento .edge que va dentro. Un vidrio real no
+     lleva marco: su canto es refraccion. Aqui se apaga todo lo pintado y se
+     deja solo la sombra interna azul, que si es del vidrio.
+     ============================================================ */
+  .specimen .glass{
+    border-color:transparent !important;
+    box-shadow: inset 0 -6px 16px rgba(11,46,71,.20), 0 16px 32px rgba(11,46,71,.16) !important;
+  }
+  .specimen .glass .edge,
+  .specimen .glass .edge::before,
+  .specimen .glass .edge::after{
+    box-shadow:none !important;
+    border-color:transparent !important;
+  }
+  /* el velo blanco del vidrio se queda, pero mas bajo: es el reflejo, no el marco */
+  .specimen .glass{
+    background-image:linear-gradient(148deg,
+      rgba(255,255,255,.22) 0%,
+      rgba(255,255,255,.07) 42%,
+      rgba(255,255,255,.02) 60%,
+      rgba(255,255,255,.14) 100%) !important;
+  }
+
+  /* ============================================================
+     EL CANTO DEL VIDRIO NO SE PINTA
+     El marco blanco tenia dos origenes: el borde y las lineas interiores de
+     .glass, y los filetes del elemento .edge que va dentro. Un vidrio real no
+     lleva marco: su canto es refraccion. Aqui se apaga todo lo pintado y se
+     deja solo la sombra interna azul, que si es del vidrio.
+     ============================================================ */
+  .specimen .glass{
+    border-color:transparent !important;
+    box-shadow: inset 0 -6px 16px rgba(11,46,71,.20), 0 16px 32px rgba(11,46,71,.16) !important;
+  }
+  .specimen .glass .edge,
+  .specimen .glass .edge::before,
+  .specimen .glass .edge::after{
+    box-shadow:none !important;
+    border-color:transparent !important;
+  }
+  /* el velo blanco del vidrio se queda, pero mas bajo: es el reflejo, no el marco */
+  .specimen .glass{
+    background-image:linear-gradient(148deg,
+      rgba(255,255,255,.22) 0%,
+      rgba(255,255,255,.07) 42%,
+      rgba(255,255,255,.02) 60%,
+      rgba(255,255,255,.14) 100%) !important;
+  }
+
+  /* ============================================================
+     EL CANTO DEL VIDRIO NO SE PINTA
+     El marco blanco tenia dos origenes: el borde y las lineas interiores de
+     .glass, y los filetes del elemento .edge que va dentro. Un vidrio real no
+     lleva marco: su canto es refraccion. Aqui se apaga todo lo pintado y se
+     deja solo la sombra interna azul, que si es del vidrio.
+     ============================================================ */
+  .specimen .glass{
+    border-color:transparent !important;
+    box-shadow: inset 0 -6px 16px rgba(11,46,71,.20), 0 16px 32px rgba(11,46,71,.16) !important;
+  }
+  .specimen .glass .edge,
+  .specimen .glass .edge::before,
+  .specimen .glass .edge::after{
+    box-shadow:none !important;
+    border-color:transparent !important;
+  }
+  /* el velo blanco del vidrio se queda, pero mas bajo: es el reflejo, no el marco */
+  .specimen .glass{
+    background-image:linear-gradient(148deg,
+      rgba(255,255,255,.22) 0%,
+      rgba(255,255,255,.07) 42%,
+      rgba(255,255,255,.02) 60%,
+      rgba(255,255,255,.14) 100%) !important;
+  }
 </style>
 </head>
 <body>

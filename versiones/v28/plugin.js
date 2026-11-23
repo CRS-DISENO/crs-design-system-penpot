@@ -1226,6 +1226,177 @@ function buildProposito(board, section) {
     } catch (e) { /* opcional */ }
   }
 
+
+  /**
+   * 03 / FUNDACIONES (detalle)
+   * Segunda version del constructor: cada bloque lleva su descripcion de uso,
+   * la reticula se dibuja a tamano real, las sombras se ven y los radios
+   * respiran. Se anade por insercion y la seccion apunta aqui.
+   */
+  function buildFundacionesDetalle(board, section) {
+    const W = section.width || BOARD_W;
+    const cw = W - PAD * 2;
+    paintBoard(board, COLOR.blue50);
+
+    const cabecera = topBlock(cw, 'SISTEMA DE DISENO 1.12');
+
+    const bajada = container('bajada', {
+      w: cw, h: 18, dir: 'row', gap: 24, align: 'center', justify: 'space-between',
+    }, [
+      label('COLOR, TIPOGRAFIA, RETICULA, ESPACIO, SOMBRAS Y RADIOS', { size: 11, color: COLOR.blue, letterSpacing: TRACK.wider }),
+      label('SECCION 02', { size: 11, color: COLOR.textMuted, letterSpacing: TRACK.wider }),
+    ]);
+
+    const encabezado = container('encabezado', {
+      w: cw, h: 101, dir: 'column', gap: 12, align: 'start', justify: 'start',
+    }, [
+      text('FUNDACIONES', { name: 'titular / fundaciones', size: 48, font: font(WEIGHT.black), color: COLOR.textPrimary, letterSpacing: TRACK.display, lineHeight: '1.05' }),
+      bajada,
+      hairline('filete de encabezado', cw, COLOR.textPrimary, 0.10),
+    ]);
+
+    function bloque(nombre, titulo, descripcion, alto, hijos) {
+      return container('bloque / ' + nombre, {
+        w: cw, h: alto, dir: 'column', gap: 10, align: 'start', justify: 'start',
+      }, [
+        label(titulo, { size: 11, color: COLOR.blue, letterSpacing: TRACK.wider }),
+        text(descripcion, { name: 'descripcion / ' + nombre, size: 12, font: font(WEIGHT.regular), color: COLOR.textSecondary, letterSpacing: '0.01', lineHeight: '1.4', w: cw }),
+      ].concat(hijos));
+    }
+
+    // COLOR: rampa y acentos
+    const RAMPA = [['50', COLOR.blue50], ['100', COLOR.blue100], ['200', COLOR.blue200], ['300', COLOR.blue300], ['400', COLOR.blue400], ['500', COLOR.blue500], ['600', COLOR.blue], ['700', COLOR.blue700], ['800', COLOR.blue800], ['900', COLOR.blue900]];
+    const anchoPaso = Math.floor((cw - 9 * 8) / 10);
+    const pasos = RAMPA.map(function (r, i) {
+      const tinta = i >= 4 ? COLOR.white : COLOR.textPrimary;
+      const caja = container('paso / ' + r[0], { w: anchoPaso, h: 96, dir: 'column', gap: 4, align: 'start', justify: 'end' }, [
+        text(r[0], { name: 'paso / ' + r[0], size: 11, font: font(WEIGHT.bold), color: tinta, letterSpacing: '0.06', lineHeight: '1.1', w: anchoPaso - 16 }),
+        text(r[1].toUpperCase(), { name: 'hex / ' + r[0], size: 9, font: font(WEIGHT.regular), color: tinta, letterSpacing: '0.02', lineHeight: '1.1', w: anchoPaso - 16 }),
+      ]);
+      try { caja.fills = [solid(r[1])]; } catch (e) { /* opcional */ }
+      return caja;
+    });
+
+    const ACENTOS = [['ADVERTENCIA', COLOR.orange, 'Solo precaucion o aviso'], ['ERROR', COLOR.red, 'Solo fallo o dato que falta'], ['EXITO', COLOR.green, 'Solo confirmacion']];
+    const anchoAcento = Math.floor((cw - 24) / 3);
+    const acentos = ACENTOS.map(function (a) {
+      const caja = container('acento / ' + a[0], { w: anchoAcento, h: 64, dir: 'column', gap: 2, align: 'start', justify: 'center' }, [
+        text(a[0], { name: 'acento / ' + a[0], size: 11, font: font(WEIGHT.bold), color: COLOR.white, letterSpacing: '0.10', lineHeight: '1.1', w: anchoAcento - 24 }),
+        text(a[2], { name: 'uso / ' + a[0], size: 9, font: font(WEIGHT.regular), color: COLOR.white, letterSpacing: '0.01', lineHeight: '1.2', w: anchoAcento - 24 }),
+      ]);
+      try { caja.fills = [solid(a[1])]; } catch (e) { /* opcional */ }
+      return caja;
+    });
+
+    const bloqueColor = bloque('color', 'COLOR: RAMPA DE AZULES Y ACENTOS',
+      'El azul de marca es el paso 600 y sale del SVG del logotipo. La rampa se ordena por luminosidad, no a ojo, y sirve para fondos, bordes, texto y estados sin inventar tonos. Los tres acentos tienen un unico uso permitido y nunca se usan de decoracion.',
+      268, [
+        container('rampa', { w: cw, h: 96, dir: 'row', gap: 8, align: 'stretch', justify: 'start' }, pasos),
+        container('acentos', { w: cw, h: 64, dir: 'row', gap: 12, align: 'stretch', justify: 'start' }, acentos),
+      ]);
+
+    // TIPOGRAFIA
+    const estilos = TOKEN_TYPOS.map(function (ty) {
+      return container('estilo / ' + ty[0], { w: cw, h: 56, dir: 'row', gap: 20, align: 'center', justify: 'space-between' }, [
+        text(ty[0], { name: 'estilo / ' + ty[0], size: Math.min(30, Math.max(13, ty[2] * 0.36)), font: font(ty[1] === WEIGHT.black ? WEIGHT.black : (ty[1] === WEIGHT.bold ? WEIGHT.bold : WEIGHT.regular)), color: COLOR.textPrimary, letterSpacing: '0.01', lineHeight: '1.1' }),
+        label(ty[2] + ' PX  /  ' + ty[3] + ' INTERLINEADO  /  ' + ty[4] + ' TRACKING', { size: 10, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
+      ]);
+    });
+    const bloqueTipografia = bloque('tipografia', 'TIPOGRAFIA: OCHO ESTILOS CON INTERLINEADO Y TRACKING',
+      'Una sola familia para todo. El tamano no viaja solo: cada estilo lleva su interlineado y su tracking, y esa pareja es la que da el ritmo. Los titulares cierran el tracking en negativo para que no se abran; las etiquetas lo abren para leerse en mayusculas.',
+      62 + 56 * estilos.length, estilos);
+
+    // RETICULA a tamano real
+    function columnasDe(titulo, columnas, margen, anchoTotal, altoCol) {
+      const anchoUtil = anchoTotal - margen * 2;
+      const anchoCol = Math.floor((anchoUtil - (columnas - 1) * 16) / columnas);
+      const cols = [];
+      for (let i = 0; i < columnas; i++) cols.push(rect('columna / ' + titulo + ' ' + (i + 1), anchoCol, altoCol, COLOR.blue300));
+      return container('reticula / ' + titulo, { w: anchoTotal, h: altoCol + 32, dir: 'column', gap: 8, align: 'start', justify: 'start' }, [
+        container('columnas / ' + titulo, { w: anchoTotal, h: altoCol, dir: 'row', gap: 16, align: 'stretch', justify: 'start' }, cols),
+        label(titulo + ': ' + columnas + ' COLUMNAS  /  MEDIANIL 16  /  MARGEN ' + margen, { size: 9, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
+      ]);
+    }
+    const bloqueReticula = bloque('reticula', 'RETICULA: TRES PANTALLAS A TAMANO REAL',
+      'La reticula se dibuja al tamano en que se usa, no como esquema. En escritorio ocupa el ancho completo de la pagina: doce columnas de 76 px con medianil de 16 y margen de 40, que es exactamente el contenido de este tablero. En tablet son ocho y en movil cuatro, con el mismo medianil.',
+      300, [
+        columnasDe('ESCRITORIO 1440', 12, 40, cw, 72),
+        columnasDe('TABLET 834', 8, 24, Math.round(cw * 0.58), 54),
+        columnasDe('CELULAR 390', 4, 16, Math.round(cw * 0.28), 54),
+      ]);
+
+    // ESPACIO grafico
+    const barras = SPACING.map(function (v) {
+      const alto = Math.max(8, Math.round(v * 1.4));
+      return container('espacio / ' + v, { w: 92, h: 140, dir: 'column', gap: 6, align: 'center', justify: 'end' }, [
+        label(v + ' PX', { size: 9, color: COLOR.textSecondary, letterSpacing: TRACK.wide }),
+        rect('barra / ' + v, 46, alto, COLOR.blue),
+      ]);
+    });
+    const bloqueEspacio = bloque('espacio', 'ESPACIO: ESCALA DE DIEZ PASOS',
+      'Todo el espacio del sistema sale de esta escala: separaciones, rellenos, altos de fila y margenes. La base es 4, el paso de trabajo es 8 y los pasos grandes ordenan el ritmo entre bloques. Si un hueco no esta aqui, no existe.',
+      216, [container('escala de espacio', { w: cw, h: 140, dir: 'row', gap: 10, align: 'end', justify: 'start' }, barras)]);
+
+    // SOMBRAS visibles: capas de apoyo en azul profundo
+    function apoyo(w, h, capas) {
+      const lista = [];
+      for (let i = 0; i < capas; i++) {
+        const r = rect('apoyo / ' + i, w + i * 12, h + (i + 1) * 5, COLOR.blue900);
+        try { r.opacity = 0.06 + i * 0.025; } catch (e) { /* opcional */ }
+        lista.push(r);
+      }
+      return container('apoyo', { w: w + capas * 14, h: h + capas * 6, dir: 'column', gap: 1, align: 'center', justify: 'end' }, lista);
+    }
+    function nivelSombra(nombre, etiqueta, capas, uso) {
+      const caja = container('nivel / ' + nombre, { w: 176, h: 130, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [apoyo(124, 48, capas)]);
+      try { caja.fills = [solid(COLOR.white)]; } catch (e) { /* opcional */ }
+      return container('sombra / ' + nombre, { w: 176, h: 196, dir: 'column', gap: 6, align: 'start', justify: 'start' }, [
+        caja,
+        label(nombre + '  ' + etiqueta, { size: 10, color: COLOR.blue, letterSpacing: TRACK.wide }),
+        text(uso, { name: 'uso / ' + nombre, size: 9, font: font(WEIGHT.regular), color: COLOR.textSecondary, letterSpacing: '0.01', lineHeight: '1.25' }),
+      ]);
+    }
+    const bloqueSombras = bloque('sombras', 'SOMBRAS: CINCO NIVELES, SEPARADAS DE LOS MATERIALES',
+      'La elevacion dice cuanto flota una pieza y se hereda a la version del cliente. El material decide el relieve y es propio de CRS. No se suman: una tarjeta con material A2 y elevacion 2 usa la sombra del nivel 2, no las dos. La sombra va en azul profundo, nunca en negro.',
+      268, [
+        container('niveles', { w: cw, h: 196, dir: 'row', gap: 10, align: 'start', justify: 'start' }, [
+          nivelSombra('E0', 'PLANO', 1, 'Superficies sobre el fondo base'),
+          nivelSombra('E1', 'APOYO', 2, 'Fichas y campos en reposo'),
+          nivelSombra('E2', 'ELEVADO', 3, 'Tarjetas y menus'),
+          nivelSombra('E3', 'FLOTANTE', 4, 'Cabecera fija y dialogos'),
+          nivelSombra('E4', 'DESTACADO', 5, 'Cierre y cinta de llamada'),
+        ]),
+      ]);
+
+    // RADIOS con aire
+    const RADIOS = [['R0', 0], ['R1', 2], ['R2', 4], ['R3', 8], ['R4', 12], ['RFULL', 999]];
+    const cajasRadio = RADIOS.map(function (r) {
+      const caja = container('radio / ' + r[0], { w: 136, h: 150, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [
+        label(r[0], { size: 11, color: COLOR.blue, letterSpacing: TRACK.wide }),
+        label(r[1] + ' PX', { size: 9, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
+      ]);
+      try { caja.fills = [solid(COLOR.white)]; } catch (e) { /* opcional */ }
+      try { caja.strokes = [stroke(COLOR.blue, 0.30, 1)]; } catch (e) { /* opcional */ }
+      try { caja.borderRadius = r[1] > 200 ? 62 : r[1]; } catch (e) { /* el runtime decide */ }
+      return caja;
+    });
+    const bloqueRadios = bloque('radios', 'RADIOS: EN CRS SE QUEDA EN R0',
+      'La marca usa esquina recta y corte a 45 grados, asi que el sistema arranca en cero. Los pasos existen para la version del cliente: la misma pieza que aqui tiene r0 alla arranca en r2. El sistema es uno y la marca no se contamina.',
+      268, [container('escala de radios', { w: cw, h: 150, dir: 'row', gap: 14, align: 'start', justify: 'start' }, cajasRadio)]);
+
+    const pie = footerBlock(cw, 'CRS DISENO  |  SISTEMA DE DISENO 1.12', 'PAGINA 04');
+
+    board.appendChild(cabecera);
+    board.appendChild(encabezado);
+    board.appendChild(bloqueColor);
+    board.appendChild(bloqueTipografia);
+    board.appendChild(bloqueReticula);
+    board.appendChild(bloqueEspacio);
+    board.appendChild(bloqueSombras);
+    board.appendChild(bloqueRadios);
+    board.appendChild(pie);
+  }
+
 // 5.b LOGOTIPO (v10). El plugin NO puede leer carpetas locales, así que el SVG
 //     entra por la ventana del plugin: el usuario lo arrastra, el UI lo lee con
 //     FileReader y lo manda aquí como texto. Si no arrastra nada, se intenta
@@ -1998,11 +2169,11 @@ const SECTIONS = [
     title: 'Fundaciones',
     description: 'Color, tipografía, retícula, espacio y sombras.',
     width: BOARD_W,
-    height: 1650,
+    height: 2300,
     enabled: true,
     listed: true,
     state: 'EN DISEÑO',
-    builder: buildFundaciones,
+    builder: buildFundacionesDetalle,
   },
   {
     id: 'componentes',
