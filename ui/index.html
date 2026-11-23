@@ -1830,6 +1830,16 @@
   .index-title--pending{ color:var(--ink-3); }
   /* Titulares de bloque: con el tracking alto, el titular largo no cabia en pantallas estrechas. */
   @media (max-width:560px){ .bloque-title{ letter-spacing:.08em; font-size:20px; } }
+
+  /* El vidrio de los materiales no lleva marco pintado: la linea de 1 px y las
+     tres interiores blancas mataban la ilusion. El canto lo hace el fondo y la
+     sombra interna azul, que si son del vidrio. */
+  .specimen .glass{
+    border-color:transparent;
+    box-shadow:
+      inset 0 -6px 16px rgba(11,46,71,.20),
+      0 16px 32px rgba(11,46,71,.16);
+  }
 </style>
 </head>
 <body>
