@@ -1319,7 +1319,7 @@ function buildProposito(board, section) {
     }
     const bloqueReticula = bloque('reticula', 'RETICULA: TRES PANTALLAS A TAMANO REAL',
       'La reticula se dibuja al tamano en que se usa, no como esquema. En escritorio ocupa el ancho completo de la pagina: doce columnas de 76 px con medianil de 16 y margen de 40, que es exactamente el contenido de este tablero. En tablet son ocho y en movil cuatro, con el mismo medianil.',
-      300, [
+      430, [
         columnasDe('ESCRITORIO 1440', 12, 40, cw, 72),
         columnasDe('TABLET 834', 8, 24, Math.round(cw * 0.58), 54),
         columnasDe('CELULAR 390', 4, 16, Math.round(cw * 0.28), 54),
@@ -1328,14 +1328,14 @@ function buildProposito(board, section) {
     // ESPACIO grafico
     const barras = SPACING.map(function (v) {
       const alto = Math.max(8, Math.round(v * 1.4));
-      return container('espacio / ' + v, { w: 92, h: 140, dir: 'column', gap: 6, align: 'center', justify: 'end' }, [
+      return container('espacio / ' + v, { w: 92, h: 224, dir: 'column', gap: 6, align: 'center', justify: 'end' }, [
         label(v + ' PX', { size: 9, color: COLOR.textSecondary, letterSpacing: TRACK.wide }),
         rect('barra / ' + v, 46, alto, COLOR.blue),
       ]);
     });
     const bloqueEspacio = bloque('espacio', 'ESPACIO: ESCALA DE DIEZ PASOS',
       'Todo el espacio del sistema sale de esta escala: separaciones, rellenos, altos de fila y margenes. La base es 4, el paso de trabajo es 8 y los pasos grandes ordenan el ritmo entre bloques. Si un hueco no esta aqui, no existe.',
-      216, [container('escala de espacio', { w: cw, h: 140, dir: 'row', gap: 10, align: 'end', justify: 'start' }, barras)]);
+      300, [container('escala de espacio', { w: cw, h: 224, dir: 'row', gap: 10, align: 'end', justify: 'start' }, barras)]);
 
     // SOMBRAS visibles: capas de apoyo en azul profundo
     function apoyo(w, h, capas) {
@@ -1348,8 +1348,22 @@ function buildProposito(board, section) {
       return container('apoyo', { w: w + capas * 14, h: h + capas * 6, dir: 'column', gap: 1, align: 'center', justify: 'end' }, lista);
     }
     function nivelSombra(nombre, etiqueta, capas, uso) {
-      const caja = container('nivel / ' + nombre, { w: 176, h: 130, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [apoyo(124, 48, capas)]);
+      const caja = container('nivel / ' + nombre, { w: 176, h: 110, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [
+        label(etiqueta, { size: 10, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
+      ]);
       try { caja.fills = [solid(COLOR.white)]; } catch (e) { /* opcional */ }
+      // La sombra de verdad: el API de Penpot la aplica como propiedad, no como
+      // capas pintadas. Si el runtime no la admite, la pieza queda plana.
+      try {
+        caja.shadows = [{
+          style: 'drop-shadow',
+          offsetX: 0,
+          offsetY: 2 + capas * 2,
+          blur: 4 + capas * 6,
+          spread: 0,
+          color: 'rgba(11,46,71,' + (0.10 + capas * 0.02).toFixed(2) + ')',
+        }];
+      } catch (e) { /* el runtime decide */ }
       return container('sombra / ' + nombre, { w: 176, h: 196, dir: 'column', gap: 6, align: 'start', justify: 'start' }, [
         caja,
         label(nombre + '  ' + etiqueta, { size: 10, color: COLOR.blue, letterSpacing: TRACK.wide }),
