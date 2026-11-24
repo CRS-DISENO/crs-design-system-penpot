@@ -1314,12 +1314,12 @@ function buildProposito(board, section) {
       for (let i = 0; i < columnas; i++) cols.push(rect('columna / ' + titulo + ' ' + (i + 1), anchoCol, altoCol, COLOR.blue300));
       return container('reticula / ' + titulo, { w: anchoTotal, h: altoCol + 32, dir: 'column', gap: 8, align: 'start', justify: 'start' }, [
         container('columnas / ' + titulo, { w: anchoTotal, h: altoCol, dir: 'row', gap: 16, align: 'stretch', justify: 'start' }, cols),
-        label(titulo + ': ' + columnas + ' COLUMNAS  /  MEDIANIL 16  /  MARGEN ' + margen, { size: 9, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
+        label(titulo + ': ' + columnas + ' COLUMNAS DE ' + anchoCol + ' PX  /  MEDIANIL 16 PX  /  MARGEN ' + margen + ' PX  /  ANCHO ' + anchoTotal + ' PX', { size: 9, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
       ]);
     }
     const bloqueReticula = bloque('reticula', 'RETICULA: TRES PANTALLAS A TAMANO REAL',
       'La reticula se dibuja al tamano en que se usa, no como esquema. En escritorio ocupa el ancho completo de la pagina: doce columnas de 76 px con medianil de 16 y margen de 40, que es exactamente el contenido de este tablero. En tablet son ocho y en movil cuatro, con el mismo medianil.',
-      430, [
+      470, [
         columnasDe('ESCRITORIO 1440', 12, 40, cw, 72),
         columnasDe('TABLET 834', 8, 24, Math.round(cw * 0.58), 54),
         columnasDe('CELULAR 390', 4, 16, Math.round(cw * 0.28), 54),
@@ -1348,6 +1348,8 @@ function buildProposito(board, section) {
       return container('apoyo', { w: w + capas * 14, h: h + capas * 6, dir: 'column', gap: 1, align: 'center', justify: 'end' }, lista);
     }
     function nivelSombra(nombre, etiqueta, capas, uso) {
+      // La tarjeta vive dentro de un marco mas grande: la sombra se dibuja hacia
+      // fuera y si el envoltorio mide lo mismo que la tarjeta, se recorta.
       const caja = container('nivel / ' + nombre, { w: 176, h: 110, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [
         label(etiqueta, { size: 10, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
       ]);
@@ -1364,7 +1366,7 @@ function buildProposito(board, section) {
           color: 'rgba(11,46,71,' + (0.10 + capas * 0.02).toFixed(2) + ')',
         }];
       } catch (e) { /* el runtime decide */ }
-      return container('sombra / ' + nombre, { w: 176, h: 196, dir: 'column', gap: 6, align: 'start', justify: 'start' }, [
+      return container('sombra / ' + nombre, { w: 196, h: 244, dir: 'column', gap: 20, align: 'start', justify: 'start' }, [
         caja,
         label(nombre + '  ' + etiqueta, { size: 10, color: COLOR.blue, letterSpacing: TRACK.wide }),
         text(uso, { name: 'uso / ' + nombre, size: 9, font: font(WEIGHT.regular), color: COLOR.textSecondary, letterSpacing: '0.01', lineHeight: '1.25' }),
@@ -1373,7 +1375,7 @@ function buildProposito(board, section) {
     const bloqueSombras = bloque('sombras', 'SOMBRAS: CINCO NIVELES, SEPARADAS DE LOS MATERIALES',
       'La elevacion dice cuanto flota una pieza y se hereda a la version del cliente. El material decide el relieve y es propio de CRS. No se suman: una tarjeta con material A2 y elevacion 2 usa la sombra del nivel 2, no las dos. La sombra va en azul profundo, nunca en negro.',
       268, [
-        container('niveles', { w: cw, h: 196, dir: 'row', gap: 10, align: 'start', justify: 'start' }, [
+        container('niveles', { w: cw, h: 240, dir: 'row', gap: 26, align: 'start', justify: 'start' }, [
           nivelSombra('E0', 'PLANO', 1, 'Superficies sobre el fondo base'),
           nivelSombra('E1', 'APOYO', 2, 'Fichas y campos en reposo'),
           nivelSombra('E2', 'ELEVADO', 3, 'Tarjetas y menus'),
@@ -2108,7 +2110,30 @@ function buildMarca(board, section) {
   board.appendChild(bloqueIncorrectos);
   board.appendChild(bloqueFondos);
   board.appendChild(bloqueRecursos);
-  board.appendChild(pie);
+      // Guia de uso: cada seccion de esta pagina con su descripcion, para que la
+    // pagina se lea sola y diga para que sirve cada cosa.
+    const GUIA_MARCA = [
+      ['LOGOTIPO EN SUS TRES VARIANTES', 'Color sobre fondo claro, una tinta para impresion y blanco sobre azul profundo. Se elige por fondo, nunca por gusto, y nunca se recolorea fuera de la paleta.'],
+      ['SIMBOLO Y PLAYHEAD', 'Las dos piezas se aisan del logotipo para usarlas como recurso de interfaz. El simbolo cierra bloques y abre listas; el playhead marca el paso activo y el avance.'],
+      ['TAMANOS MINIMOS', 'Por debajo de 150 px de ancho la bajada del logotipo deja de leerse y la marca pierde su nombre. El simbolo solo admite 24 px de alto.'],
+      ['AREA DE RESPETO', 'Alrededor del logotipo se reserva una X igual al alto del simbolo. Ningun texto, borde ni imagen entra en ese margen.'],
+      ['REGLAS DE USO', 'El logotipo se toma del SVG oficial, se usa sobre fondos admitidos y no se rota, deforma ni recolorea.'],
+      ['USOS INCORRECTOS', 'Seis casos quedan fuera del sistema. Son los que mas aparecen cuando la marca se copia de un sitio a otro.'],
+      ['FONDOS ADMITIDOS', 'Solo los de la paleta. Sobre fotografias o degradados ajenos el logotipo no se garantiza.'],
+      ['FORMAS DEL LOGO COMO RECURSOS', 'Cuatro formas del logotipo pasan al sistema como recurso de interfaz, cada una con su uso y fuera del cual no se emplea.'],
+    ];
+    const guiaMarca = container('guia de uso de la marca', {
+      w: cw, h: 40 * GUIA_MARCA.length + 30, dir: 'column', gap: 8, align: 'start', justify: 'start',
+    }, [label('PARA QUE SIRVE CADA SECCION DE ESTA PAGINA', { size: 11, color: COLOR.blue, letterSpacing: TRACK.wider })].concat(
+      GUIA_MARCA.map(function (g) {
+        return container('guia / ' + g[0], { w: cw, h: 40, dir: 'column', gap: 2, align: 'start', justify: 'start' }, [
+          label(g[0], { size: 9, color: COLOR.textPrimary, letterSpacing: TRACK.wide }),
+          text(g[1], { name: 'guia texto / ' + g[0], size: 11, font: font(WEIGHT.regular), color: COLOR.textSecondary, letterSpacing: '0.01', lineHeight: '1.3', w: cw }),
+        ]);
+      })
+    ));
+    board.insertChild(board.children.length - 1, guiaMarca);
+board.appendChild(pie);
 }
 
 // -----------------------------------------------------------------------------
@@ -2170,7 +2195,7 @@ const SECTIONS = [
     title: 'Marca',
     description: 'Logotipo en tres variantes, simbolo y playhead aislados con area de respeto, reglas de uso, usos incorrectos, fondos y formas como recursos.',
     width: BOARD_W,
-    height: 2440,
+    height: 2900,
     enabled: true,
     listed: true,
     state: 'GENERADA',
@@ -2183,7 +2208,7 @@ const SECTIONS = [
     title: 'Fundaciones',
     description: 'Color, tipografía, retícula, espacio y sombras.',
     width: BOARD_W,
-    height: 2300,
+    height: 3200,
     enabled: true,
     listed: true,
     state: 'EN DISEÑO',
