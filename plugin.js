@@ -726,7 +726,7 @@ function pillarsBlock(width) {
  * runtime descarta el valor en silencio y el board se queda sin degradado,
  * así que aquí se usa la correcta y se relee para confirmarlo.
  */
-function paintFondo(board, endColor) {
+function paintBoard(board, endColor) {
   const to = endColor || COLOR.blue100;
   let gradientOk = false;
   try {
@@ -769,7 +769,7 @@ function buildPortada(board, section) {
   const cw = W - PAD * 2;
   const logos = LOGOS || {};
 
-  const gradientOk = paintFondo(board, COLOR.blue100);
+  const gradientOk = paintBoard(board, COLOR.blue100);
   try { console.log('[CRS] gradiente nativo=' + gradientOk); } catch (e) { /* diagnóstico opcional */ }
 
   // Cabecera: ">" + CRS DISEÑO a la izquierda, etiqueta de versión a la derecha.
@@ -817,7 +817,7 @@ function buildIndice(board, section) {
   const cw = W - PAD * 2;
   const items = listedSections();
 
-  const gradientOk = paintFondo(board, COLOR.blue50);
+  const gradientOk = paintBoard(board, COLOR.blue50);
   try { console.log('[CRS] gradiente nativo=' + gradientOk); } catch (e) { /* diagnóstico opcional */ }
 
   const cabecera = topBlock(cw, 'SISTEMA DE DISEÑO 1.12');
@@ -951,7 +951,7 @@ function buildProposito(board, section) {
   const W = section.width || BOARD_W;
   const cw = W - PAD * 2;
 
-  const gradientOk = paintFondo(board, COLOR.blue50);
+  const gradientOk = paintBoard(board, COLOR.blue50);
   try { console.log('[CRS] gradiente nativo=' + gradientOk); } catch (e) { /* opcional */ }
 
   const cabecera = topBlock(cw, 'SISTEMA DE DISEÑO 1.12');
@@ -1035,7 +1035,7 @@ function buildProposito(board, section) {
     const W = section.width || BOARD_W;
     const cw = W - PAD * 2;
 
-    const gradientOk = paintFondo(board, COLOR.blue50);
+    const gradientOk = paintBoard(board, COLOR.blue50);
     try { console.log('[CRS] gradiente nativo=' + gradientOk); } catch (e) { /* opcional */ }
 
     const cabecera = topBlock(cw, 'SISTEMA DE DISENO 1.12');
@@ -1236,7 +1236,7 @@ function buildProposito(board, section) {
   function buildFundacionesDetalle(board, section) {
     const W = section.width || BOARD_W;
     const cw = W - PAD * 2;
-    paintFondo(board, COLOR.blue50);
+    paintBoard(board, COLOR.blue50);
 
     const cabecera = topBlock(cw, 'SISTEMA DE DISENO 1.12');
 
@@ -1312,15 +1312,15 @@ function buildProposito(board, section) {
       const anchoCol = Math.floor((anchoUtil - (columnas - 1) * 16) / columnas);
       const cols = [];
       for (let i = 0; i < columnas; i++) cols.push(rect('columna / ' + titulo + ' ' + (i + 1), anchoCol, altoCol, COLOR.blue300));
-      return container('reticula / ' + titulo, { w: anchoTotal, h: altoCol + 56, dir: 'column', gap: 10, align: 'start', justify: 'start' }, [
+      return container('reticula / ' + titulo, { w: anchoTotal, h: altoCol + 32, dir: 'column', gap: 8, align: 'start', justify: 'start' }, [
         container('columnas / ' + titulo, { w: anchoTotal, h: altoCol, dir: 'row', gap: 16, align: 'stretch', justify: 'start' }, cols),
-        label(titulo + ': ' + columnas + ' COL  /  COLUMNA ' + anchoCol + ' PX  /  MEDIANIL 16 PX  /  MARGEN ' + margen + ' PX', { size: 11, color: COLOR.blue, letterSpacing: TRACK.wide }),
+        label(titulo + ': ' + columnas + ' COLUMNAS DE ' + anchoCol + ' PX  /  MEDIANIL 16 PX  /  MARGEN ' + margen + ' PX  /  ANCHO ' + anchoTotal + ' PX', { size: 9, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
       ]);
     }
     const bloqueReticula = bloque('reticula', 'RETICULA: TRES PANTALLAS A TAMANO REAL',
       'La reticula se dibuja al tamano en que se usa, no como esquema. En escritorio ocupa el ancho completo de la pagina: doce columnas de 76 px con medianil de 16 y margen de 40, que es exactamente el contenido de este tablero. En tablet son ocho y en movil cuatro, con el mismo medianil.',
-      610, [
-        columnasDe('ESCRITORIO 1440', 12, 40, cw, 96),
+      470, [
+        columnasDe('ESCRITORIO 1440', 12, 40, cw, 72),
         columnasDe('TABLET 834', 8, 24, Math.round(cw * 0.58), 54),
         columnasDe('CELULAR 390', 4, 16, Math.round(cw * 0.28), 54),
       ]);
@@ -1350,7 +1350,7 @@ function buildProposito(board, section) {
     function nivelSombra(nombre, etiqueta, capas, uso) {
       // La tarjeta vive dentro de un marco mas grande: la sombra se dibuja hacia
       // fuera y si el envoltorio mide lo mismo que la tarjeta, se recorta.
-      const caja = container('nivel / ' + nombre, { w: 200, h: 104, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [
+      const caja = container('nivel / ' + nombre, { w: 176, h: 110, dir: 'column', gap: 6, align: 'center', justify: 'center' }, [
         label(etiqueta, { size: 10, color: COLOR.textMuted, letterSpacing: TRACK.wide }),
       ]);
       try { caja.fills = [solid(COLOR.white)]; } catch (e) { /* opcional */ }
@@ -1366,21 +1366,19 @@ function buildProposito(board, section) {
           color: 'rgba(11,46,71,' + (0.10 + capas * 0.02).toFixed(2) + ')',
         }];
       } catch (e) { /* el runtime decide */ }
-      return container('sombra / ' + nombre, { w: 300, h: 230, dir: 'column', gap: 26, align: 'start', justify: 'start' }, [
+      return container('sombra / ' + nombre, { w: 196, h: 244, dir: 'column', gap: 20, align: 'start', justify: 'start' }, [
         caja,
         label(nombre + '  ' + etiqueta, { size: 10, color: COLOR.blue, letterSpacing: TRACK.wide }),
         text(uso, { name: 'uso / ' + nombre, size: 9, font: font(WEIGHT.regular), color: COLOR.textSecondary, letterSpacing: '0.01', lineHeight: '1.25' }),
       ]);
     }
     const bloqueSombras = bloque('sombras', 'SOMBRAS: CINCO NIVELES, SEPARADAS DE LOS MATERIALES',
-      'La elevacion dice cuanto flota una pieza y se hereda a la version del cliente. El material decide el relieve y es propio de CRS. No se suman: una tarjeta con material A2 y elevacion 2 usa la sombra del nivel 2, no las dos. La sombra va en azul profundo, nunca en negro. Cada nivel va en su propia celda con aire alrededor, porque la sombra se dibuja hacia fuera y sin ese margen se recorta.',
-      560, [
-        container('niveles fila 1', { w: cw, h: 250, dir: 'row', gap: 40, align: 'center', justify: 'start' }, [
+      'La elevacion dice cuanto flota una pieza y se hereda a la version del cliente. El material decide el relieve y es propio de CRS. No se suman: una tarjeta con material A2 y elevacion 2 usa la sombra del nivel 2, no las dos. La sombra va en azul profundo, nunca en negro.',
+      268, [
+        container('niveles', { w: cw, h: 240, dir: 'row', gap: 26, align: 'start', justify: 'start' }, [
           nivelSombra('E0', 'PLANO', 1, 'Superficies sobre el fondo base'),
           nivelSombra('E1', 'APOYO', 2, 'Fichas y campos en reposo'),
           nivelSombra('E2', 'ELEVADO', 3, 'Tarjetas y menus'),
-        ]),
-        container('niveles fila 2', { w: cw, h: 250, dir: 'row', gap: 40, align: 'center', justify: 'start' }, [
           nivelSombra('E3', 'FLOTANTE', 4, 'Cabecera fija y dialogos'),
           nivelSombra('E4', 'DESTACADO', 5, 'Cierre y cinta de llamada'),
         ]),
@@ -1413,12 +1411,6 @@ function buildProposito(board, section) {
     board.appendChild(bloqueSombras);
     board.appendChild(bloqueRadios);
     board.appendChild(pie);
-  }
-
-
-  /** Fondo plano del tablero: sin degradado, un solo tono de la paleta. */
-  function paintFondo(board, color) {
-    try { board.fills = [solid(color)]; return true; } catch (e) { return false; }
   }
 
 // 5.b LOGOTIPO (v10). El plugin NO puede leer carpetas locales, así que el SVG
@@ -1775,7 +1767,7 @@ function buildMarca(board, section) {
   const cw = W - PAD * 2;
   const logos = LOGOS || {};
 
-  const gradientOk = paintFondo(board, COLOR.blue50);
+  const gradientOk = paintBoard(board, COLOR.blue50);
   try { console.log('[CRS] gradiente nativo=' + gradientOk); } catch (e) { /* opcional */ }
 
   const cabecera = topBlock(cw, 'SISTEMA DE DISEÑO 1.12');
